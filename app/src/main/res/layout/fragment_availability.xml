@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".AvailabilityFragment">
+    <!--
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Json"
+        android:id="@+id/getJsonButton"/>
+    <TextView
+        android:id="@+id/txtJson"
+        android:layout_below="@id/getJsonButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Availability Fragment"
+            android:layout_centerInParent="true"
+            android:textSize="16sp"/>
+-->
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/availabilityListView" />
+
+</RelativeLayout>
