@@ -5,4 +5,9 @@
     <color name="colorAccent">#D81B60</color>
     <color name="black">#000</color>
     <color name="white">#fff</color>
+
+    <!--Colors for the availability textview-->
+    <color name="red_color">#D50000</color>
+    <color name="orange_color">#FF6D00</color>
+    <color name="green_color">#4CAF50</color>
 </resources>

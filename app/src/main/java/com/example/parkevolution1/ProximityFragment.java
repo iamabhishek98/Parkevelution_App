@@ -225,6 +225,9 @@ public class ProximityFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coord(), carPark.getX_coord())).asLatLon();
+
+                    ((MainActivity)getActivity()).setLatLonCoordinate(latLonCoordinateCP);
+
                     LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
                     Main_Fragment.addMarkerToMap(latLng, carPark.getName());
                 }

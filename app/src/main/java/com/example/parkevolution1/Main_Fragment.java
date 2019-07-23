@@ -6,10 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -20,21 +19,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.libraries.places.api.Places;
 
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
-import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-//import com.google.android.gms.location.places.Places;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -58,7 +54,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
@@ -68,7 +63,16 @@ import java.util.List;
 public class Main_Fragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener{
 
     static GoogleMap map;
+    /**
+     * Location the user wants to travel to
+     * */
     Location currentLocation;
+
+    /**
+     * Location that the user starts off with
+     * */
+    Location startingLocation;
+
     SVY21Coordinate currentSVY21Location;
 
     double default_lat = 1.2906, default_long = 103.8530;
@@ -139,7 +143,13 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                 public void onSuccess(Location location) {
                     if (location != null) {
                         currentLocation = location;
+
+                        /**
+                         * the user's current location is set in MainActivity
+                         * */
                         MainActivity.setLatLonCoordinate(new LatLonCoordinate(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                        MainActivity.setStartingLatLonCoordinate(new LatLonCoordinate(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                        startingLocation = location;
                         //viewPager.invalidate();
                         //pagerAdapter.notifyDataSetChanged();
                         viewPager.getAdapter().notifyDataSetChanged();
@@ -148,6 +158,7 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                         //Toast.makeText(getContext(), currentLocation.getLatitude() + "" + currentLocation.getLongitude(), Toast.LENGTH_LONG).show();
                         if(currentCoord == null){
                             currentCoord = new LatLonCoordinate(default_lat, default_long);
+
                         }
                         currentSVY21Location = convertToSVY21(currentCoord);
                         //SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
@@ -229,6 +240,35 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                 fetchLastLocation();
             }
         });
+
+        FloatingActionButton navFab = getView().findViewById(R.id.fab_2);
+        navFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                LatLonCoordinate latLonCoordinate = ((MainActivity)getActivity()).getLatLonCoordinate();
+                LatLonCoordinate startingLatLonCoordinate = ((MainActivity) getActivity()).getStartingLatLonCoordinate();
+                /**
+                 * Logging for error testing
+                 * */
+                Log.v("Navigation_testing", "Starting Latitude: "+startingLatLonCoordinate.getLatitude() + " Starting Longitude: "+startingLatLonCoordinate.getLongitude());
+                Log.v("Navigation_testing", "Starting Latitude: "+latLonCoordinate.getLatitude()+ " Starting Longitude: "+startingLatLonCoordinate.getLongitude());
+                // Directions
+                String nav_address = "http://maps.google.com/maps?daddr="
+                        + latLonCoordinate.getLatitude() +", "
+                        + latLonCoordinate.getLongitude();
+
+                /**
+                 * Check if the person has google maps app
+                 * Open google maps if the person has google maps
+                 * If not open browser
+                 * "http://maps.google.com/maps?saddr=51.5, 0.125&daddr=51.5, 0.15"
+                 */
+
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(nav_address));
+                startActivity(intent);
+            }
+        });
         //mSearchText = mView.findViewById(R.id.input_search);
 
         init();
@@ -275,37 +315,6 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
             Places.initialize(getActivity(), apiKey);
         // Create a new Places client instance.
         placesClient = Places.createClient(getActivity());
-        /*
-        googleApiClient = new GoogleApiClient
-                .Builder(getActivity())
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(getActivity(), this)
-                .build();
-        */
-
-        /*
-        placeAutocompleteAdapter = new PlaceAutocompleteAdapter(getActivity(), googleApiClient, LAT_LNG_BOUNDS, null);
-        mSearchText.setAdapter(placeAutocompleteAdapter);
-        */
-        /*
-        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH
-                        || actionId == EditorInfo.IME_ACTION_DONE
-                        || event.getAction() == KeyEvent.ACTION_DOWN
-                        || event.getAction() == KeyEvent.KEYCODE_ENTER
-                ) {
-                    //execute our method for searching
-                    geoLocate();
-                }
-
-                return false;
-            }
-        });
-        */
-
     }
 
     private void setUpPlaceAutoComplete(){
@@ -324,11 +333,9 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                 markerPrimary = new MarkerOptions().position(place.getLatLng()).title(place.getName());
                 MainActivity.setLatLonCoordinate(new LatLonCoordinate(lat_places, long_places));
                 mapFragment.getMapAsync(Main_Fragment.this);
-
                 //((FragmentCanali) mMyAdapter.fr_list.get(0)).refresh();
                 //viewPager.invalidate();
                 viewPager.getAdapter().notifyDataSetChanged();
-
             }
 
             @Override
@@ -340,25 +347,6 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
 
     private String TAG = "Main_Fragment";
 
-    /*
-    private void geoLocate() {
-        String searchString = mSearchText.getText().toString();
-
-        Geocoder geocoder = new Geocoder(getActivity());
-        List<Address> list = new ArrayList<>();
-        try {
-            list = geocoder.getFromLocationName(searchString, 1);
-        } catch (IOException e) {
-            Log.e(TAG, "geoLocate: IOException: " + e.getMessage());
-        }
-
-        if (list.size() > 0) {
-            Address address = list.get(0);
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-
-        }
-    }*/
-
     private LatLonCoordinate currentCoord;
     private boolean isFirstOpened = true; //for the very first marker
 
@@ -366,6 +354,11 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.getUiSettings().setMyLocationButtonEnabled(false);
+        //Map Tool Bar is the default google map's toolbar that opens up the navigation direcitons to that location as well as google maps location on google maps
+        /**
+         * This is replaced with custom floating action button
+         * */
+        map.getUiSettings().setMapToolbarEnabled(false);
 
         if (currentLocation != null) {
             LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
@@ -390,7 +383,8 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
             //if(isFirstOpened){
               //  isFirstOpened =  false;
                 MarkerOptions options = new MarkerOptions().position(latLng).title("Here");
-                map.addMarker(options);
+                map.addMarker(options).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
             //}
             currentCoord = new LatLonCoordinate(latLng.latitude, latLng.longitude);
 
@@ -428,7 +422,8 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
         MarkerOptions options = new MarkerOptions().position(latLng).title(name);
         map.clear();
         if(markerPrimary != null) map.addMarker(markerPrimary);
-        map.addMarker(options);
+        map.addMarker(options).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
     }
 
 }

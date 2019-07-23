@@ -36,4 +36,6 @@ dependencies {
     //implementation 'com.google.android.libraries.places:places-compat:1.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.akexorcist:googledirectionlibrary:1.0.4'
+    implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
+    implementation 'com.nineoldandroids:library:2.4.0'
 }

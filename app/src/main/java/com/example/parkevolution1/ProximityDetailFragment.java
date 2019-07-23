@@ -35,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -138,8 +139,16 @@ public class ProximityDetailFragment extends Fragment implements OnMapReadyCallb
         LatLng latLng = new LatLng(latitude, longitude);
         //map.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         //map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15)); //change this number between 2-21 to control the zoom of the map
+
+        //CARPARK MARKER
         MarkerOptions options = new MarkerOptions().position(latLng).title(carpark_name);
-        map.addMarker(options);
+        map.addMarker(options).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+        //INITIAL MARKER
+        LatLng latLng1 = new LatLng(currentPosition.getLatitude(), currentPosition.getLongitude());
+        MarkerOptions options_start = new MarkerOptions().position(latLng1).title("Starting here");
+        map.addMarker(options_start).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
         Log.v("Map_check", "marker added");
     }
 

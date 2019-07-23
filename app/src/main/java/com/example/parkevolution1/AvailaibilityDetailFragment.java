@@ -35,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -121,13 +122,21 @@ public class AvailaibilityDetailFragment extends Fragment implements OnMapReadyC
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        map.setMyLocationEnabled(true);
+        map.setMyLocationEnabled(false);
         map.clear();
         LatLng latLng = new LatLng(latitude, longitude);
         //map.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         //map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        MarkerOptions options = new MarkerOptions().position(latLng).title(carpark_name);
-        map.addMarker(options);
+
+        //CARPARK MARKER
+        MarkerOptions options_destination = new MarkerOptions().position(latLng).title(carpark_name);
+        map.addMarker(options_destination).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+        //INITIAL MARKER
+        LatLng latLng1 = new LatLng(currentPosition.getLatitude(), currentPosition.getLongitude());
+        MarkerOptions options_start = new MarkerOptions().position(latLng1).title("Starting here");
+        map.addMarker(options_start).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
         Log.v("Map_check", "marker added");
     }
 

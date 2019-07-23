@@ -14,11 +14,23 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginRight="24dp"
-        android:layout_marginTop="320dp"
+        android:layout_marginTop="260dp"
         android:src="@drawable/ic_my_location_black_24dp"
         app:fabSize="normal"
         app:backgroundTint="@color/colorPrimary"
         android:id="@+id/fab_1"
+        app:elevation="6dp"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="320dp"
+        android:src="@drawable/ic_navigation"
+        app:fabSize="normal"
+        app:backgroundTint="@color/colorPrimary"
+        android:id="@+id/fab_2"
         app:elevation="6dp"/>
 
     <RelativeLayout
@@ -66,7 +78,8 @@
                         android:id="@+id/places_autocomplete_fragment"
                         android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        />
 
                 </LinearLayout>
             </ScrollView>

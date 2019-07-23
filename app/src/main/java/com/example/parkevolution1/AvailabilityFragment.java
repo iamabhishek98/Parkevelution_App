@@ -392,8 +392,17 @@ public class AvailabilityFragment extends Fragment {
             TextView tvName = convertView.findViewById(R.id.availability_name);
             TextView tvAvailability = convertView.findViewById(R.id.availability_value);
             tvName.setText(carPark.getAddress());
-            tvAvailability.setText(carPark.getLotType() + ": " + carPark.getAvailLots() + "/" + carPark.getTotalLots());
 
+            //set the color of the availability here
+            tvAvailability.setText(carPark.getLotType() + ": " + carPark.getAvailLots() + "/" + carPark.getTotalLots());
+            double availRatio  = (carPark.getAvailLots() *1.0)/carPark.getTotalLots();  // This value will be between 0 to 1
+            if(availRatio < 0.33){
+                tvAvailability.setTextColor(getResources().getColor(R.color.red_color));
+            } else if(availRatio < 0.67){
+                tvAvailability.setTextColor(getResources().getColor(R.color.orange_color));
+            } else {
+                tvAvailability.setTextColor(getResources().getColor(R.color.green_color));
+            }
             ImageView arrow = convertView.findViewById(R.id.availability_arrow);
             View mainV = convertView.findViewById(R.id.mainV_availability);
 
@@ -401,6 +410,9 @@ public class AvailabilityFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
+
+                    ((MainActivity)getActivity()).setLatLonCoordinate(latLonCoordinateCP);
+
                     LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
                     Main_Fragment.addMarkerToMap(latLng, carPark.getName());
                 }
