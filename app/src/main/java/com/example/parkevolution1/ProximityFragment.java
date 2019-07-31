@@ -70,11 +70,12 @@ public class ProximityFragment extends Fragment {
 
     private void readCarParkData(){
         carParks.clear();
-        InputStream is = getActivity().getResources().openRawResource(R.raw.hdb_carparks4);
+        InputStream is = getActivity().getResources().openRawResource(R.raw.hdb_carparks4_1);
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(is, Charset.forName("UTF-8"))
         );
         String line = "";
+        int lineCounterHDB = 0;
         try{
             while((line = reader.readLine()) != null){
                 //split by ","
@@ -82,30 +83,39 @@ public class ProximityFragment extends Fragment {
 
                 //Read the data
                 CarPark carPark = new CarPark();
-                carPark.setId(tokens[0]);
-                carPark.setName(tokens[3]);
-                carPark.setAddress(tokens[3]);
-                carPark.setHdb_car_parking_rate(tokens[4]);
+                carPark.setId(tokens[1]);
+                carPark.setName(tokens[4]);
+                carPark.setAddress(tokens[4]);
+                carPark.setHdb_car_parking_rate(tokens[5]);
                 //carPark.setHdb_motorcycle_parking_rate(tokens[5]);
                 try{
-                    Log.v("x-cord", tokens[1]);
-                    carPark.setX_coord(Double.parseDouble(tokens[1]));
+                    Log.v("x-cord", tokens[2]);
+                    carPark.setX_coord(Double.parseDouble(tokens[2]));
                 } catch(NumberFormatException e){
                     e.printStackTrace();
                     carPark.setX_coord(0);
                 }
                 try{
-                    Log.v("y-cord", tokens[2]);
-                    carPark.setY_coord(Double.parseDouble(tokens[2]));
+                    Log.v("y-cord", tokens[3]);
+                    carPark.setY_coord(Double.parseDouble(tokens[3]));
                 }
                 catch(NumberFormatException e){
                     e.printStackTrace();
                     carPark.setY_coord(0);
                 }
 
+                String favBool = tokens[0];
+                if(favBool.equals("TRUE")){
+                    carPark.setIsFavourite(true);
+                } else {
+                    carPark.setIsFavourite(false);
+                }
+                carPark.setFileLineNum(lineCounterHDB);
+                carPark.setIsHDB(true);
                 carPark.setDist(1000000); //initialize all distance to 100000 first
                 carPark.setDataCategory(CarPark.DataCategory.HDB);
                 carParks.add(carPark);
+                lineCounterHDB++;
             }
         }catch(IOException e){
             Log.wtf("MyActivity", "Error reading data file on line" + line, e);
@@ -118,6 +128,7 @@ public class ProximityFragment extends Fragment {
                 new InputStreamReader(is2, Charset.forName("UTF-8"))
         );
 
+        int lineCounterMalls = 0;
         try{
             while((line = reader2.readLine()) != null){
                 //split by ","
@@ -125,27 +136,37 @@ public class ProximityFragment extends Fragment {
 
                 //Read the data
                 CarPark carPark =  new CarPark();
-                carPark.setName(tokens[0]);
-                carPark.setAddress(tokens[0]);
+                carPark.setName(tokens[1]);
+                carPark.setAddress(tokens[1]);
                 try{
                     SVY21Coordinate svy21Coordinate = new LatLonCoordinate(
-                            Double.parseDouble(tokens[1]),
-                            Double.parseDouble(tokens[2])
+                            Double.parseDouble(tokens[2]),
+                            Double.parseDouble(tokens[3])
                     ).asSVY21();
                     carPark.setX_coord(svy21Coordinate.getEasting());
                     carPark.setY_coord(svy21Coordinate.getNorthing());
                 } catch (NumberFormatException e){
                     e.printStackTrace();
                     Log.v("Mall_Data", "Error in reading in coords "+
-                            tokens[1] + " " + tokens[2]);
+                            tokens[2] + " " + tokens[3]);
                 }
-                carPark.setMall_weekday_rate1(tokens[3]);
-                carPark.setMall_weekday_rate2(tokens[4]);
-                carPark.setMall_sat_rate(tokens[5]);
-                carPark.setMall_sun_rate(tokens[6]);
+                carPark.setMall_weekday_rate1(tokens[4]);
+                carPark.setMall_weekday_rate2(tokens[5]);
+                carPark.setMall_sat_rate(tokens[6]);
+                carPark.setMall_sun_rate(tokens[7]);
                 carPark.setDist(1000000); //initialize all distance to that first
                 carPark.setDataCategory(CarPark.DataCategory.SHOPPING_MALL);
+
+                String favBool = tokens[0];
+                if(favBool.equals("TRUE")){
+                    carPark.setIsFavourite(true);
+                } else {
+                    carPark.setIsFavourite(false);
+                }
+                carPark.setIsHDB(false);
+                carPark.setFileLineNum(lineCounterMalls);
                 carParks.add(carPark);
+                lineCounterMalls++;
             }
         } catch(IOException e){
             Log.d("Mall_Data", "Error reading data on file" + line, e);
@@ -226,7 +247,8 @@ public class ProximityFragment extends Fragment {
                 public void onClick(View view) {
                     LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coord(), carPark.getX_coord())).asLatLon();
 
-                    ((MainActivity)getActivity()).setLatLonCoordinate(latLonCoordinateCP);
+                    //the selected latLong will get updated to the location of the selected carpark
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP);
 
                     LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
                     Main_Fragment.addMarkerToMap(latLng, carPark.getName());
@@ -237,6 +259,11 @@ public class ProximityFragment extends Fragment {
                 public void onClick(View view) {
                     ProximityDetailFragment proximityDetailFragment = new ProximityDetailFragment();
                     Bundle bundle = new Bundle();
+
+                    //setting the selected location in MainActivity
+                    LatLonCoordinate latLonCoordinateCP1 = (new SVY21Coordinate(carPark.getY_coord(), carPark.getX_coord())).asLatLon();
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP1);
+
                     //pass in the data here
                     Geocoder geocoder;
                     List<Address> addresses;
@@ -255,6 +282,14 @@ public class ProximityFragment extends Fragment {
                                 bundle.putString("hdb_car_parking_rate", carPark.getHdb_car_parking_rate());
                                 //bundle.putString("hdb_motorcycle_parking_rate", carPark.getHdb_motorcycle_parking_rate());
                                 bundle.putString("carpark-id", carPark.getId());
+
+
+                                //Information for favourite carpark
+                                bundle.putInt("fileLineNum", carPark.getFileLineNum());
+                                bundle.putBoolean("isFavourite", carPark.getIsFavourite());
+                                bundle.putBoolean("isHDB", carPark.getIsHDB());
+
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Log.v("Location_result", "Get address for the carpark list view isn't working");
@@ -275,6 +310,13 @@ public class ProximityFragment extends Fragment {
                                 bundle.putString("shopping-weekday2", carPark.getMall_weekday_rate2());
                                 bundle.putString("shopping-sat", carPark.getMall_sat_rate());
                                 bundle.putString("shopping-sun", carPark.getMall_sun_rate());
+
+
+                                //Information for favourite carpark
+                                bundle.putInt("fileLineNum", carPark.getFileLineNum());
+                                bundle.putBoolean("isFavourite", carPark.getIsFavourite());
+                                bundle.putBoolean("isHDB", carPark.getIsHDB());
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Log.v("Location_result", "Get address for the carpark list view isn't working");
@@ -290,7 +332,7 @@ public class ProximityFragment extends Fragment {
                     proximityDetailFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
                             .setTransition(FragmentTransaction.TRANSIT_ENTER_MASK)
-                            .replace(R.id.main_fragment, proximityDetailFragment)
+                            .add(R.id.main_fragment, proximityDetailFragment)
                             .addToBackStack(null)
                             .commit();
                 }

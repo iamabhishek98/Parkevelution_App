@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ParkedHereFragment"
+    tools:context=".FindCarFragment"
     android:background="#fff">
 
     <!-- Get current location FAB -->
@@ -14,10 +14,10 @@
         android:layout_gravity="end"
         android:layout_marginRight="24dp"
         android:layout_marginTop="320dp"
-        android:src="@drawable/ic_my_location_black_24dp"
+        android:src="@drawable/ic_navigation"
         app:fabSize="normal"
         app:backgroundTint="@color/colorPrimary"
-        android:id="@+id/fab_parked_here_curr_loc"
+        android:id="@+id/fab_find_car"
         app:elevation="6dp"/>
 
     <!--Google maps fragment-->
@@ -53,23 +53,21 @@
             android:textSize="16sp"
             android:textStyle="italic"/>
 
-        <EditText
-            android:id="@+id/parked_here_description_et"
-            android:layout_marginTop="16dp"
+        <TextView
+            android:id="@+id/park_here_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="3"
-            android:maxLength="100"
-            android:hint="Enter some description here"
-            android:layout_marginRight="24dp"
+            android:textColor="#000"
             android:layout_marginLeft="24dp"
-            android:inputType="textCapSentences"/>
+            android:layout_marginRight="24dp"
+            android:textSize="16sp"
+            android:textStyle="italic"/>
 
         <Button
-            android:id="@+id/park_here_button"
+            android:id="@+id/unpark_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Park Here"
+            android:text="Unpark"
             android:layout_marginTop="24dp"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -79,7 +77,5 @@
             android:backgroundTint="@color/colorPrimary"/>
 
     </LinearLayout>
-
-
 
 </android.support.design.widget.CoordinatorLayout>

@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#fff"
     tools:context=".ProximityDetailFragment">
+
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="300dp"
+        android:src="@drawable/ic_navigation"
+        app:fabSize="normal"
+        app:backgroundTint="@color/colorPrimary"
+        android:id="@+id/fab_2"
+        app:elevation="3dp"/>
 
     <fragment
         android:layout_width="match_parent"
@@ -12,27 +25,52 @@
         android:id="@+id/map_proximity_detail"
         android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
+
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="10dp">
     <ScrollView
+        android:id="@+id/proximity_scrollview"
         android:layout_below="@id/map_proximity_detail"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+
+        android:layout_height="match_parent"
+        android:background="#fff"
+        app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+        app:elevation="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+        <LinearLayout
+            android:layout_marginRight="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/carpark_name_proximity"
                 android:layout_marginTop="16dp"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="32dp"
-                android:layout_width="wrap_content"
+                android:layout_marginRight="16dp"
+                android:layout_width="240dp"
                 android:layout_height="wrap_content"
                 android:text="Carpark Name"
                 android:textStyle="bold"
                 android:textColor="#000"
                 android:textSize="20sp"/>
+
+            <ImageView
+                android:id="@+id/star_fav_icon"
+                android:layout_marginTop="16dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_star_border" />
+        </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -112,32 +150,6 @@
                 android:layout_marginRight="24dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-
-                <ImageView
-                    android:id="@+id/availability_icon_proximity"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_availability"/>
-
-                <TextView
-                    android:id="@+id/availability_text_proximity"
-                    android:layout_marginLeft="12dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="No parking lots availability data found"
-                    android:textSize="16sp"/>
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginRight="24dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
                 <ImageView
                     android:id="@+id/travel_icon_proximity"
                     android:layout_width="48dp"
@@ -154,20 +166,209 @@
 
             </LinearLayout>
 
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/availability_icon_proximity"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_availability"/>
+
+                <TextView
+                    android:id="@+id/availability_text_proximity"
+                    android:layout_marginLeft="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No parking lot availability data found"
+                    android:textSize="16sp"/>
+
+
+            </LinearLayout>
+
+
             <Button
-                android:layout_width="150dp"
+                android:id="@+id/more_info_button"
+                android:layout_width="300dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_height="wrap_content"
-                android:text="More Info"
+                android:text="More Info on Lot Availability"
                 android:gravity="center"
                 android:textColor="#fff"
                 android:background="#000"
                 android:textSize="16sp"
-                android:textStyle="normal"/>
+                android:textStyle="normal"
+                android:visibility="visible"/>
+
+            <!-- progress  bar -->
+
+            <ProgressBar
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"
+                android:id="@+id/avail_progressBar_prox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_gravity="center_horizontal"/>
+
+            <TextView
+                android:id="@+id/no_further_info_prox"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="24dp"
+                android:layout_marginLeft="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:text="No further information is available for this carpark"
+                android:layout_gravity="center_horizontal"
+                android:textSize="24sp"
+                android:textColor="#000"/>
+
+            <!--The graph layout will go in here-->
+
+            <RelativeLayout
+                android:id="@+id/histTrendProx"
+                android:visibility="gone"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/graph_title"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lot Availability Over Past 24 Hours: "
+                    android:textStyle="bold|italic"
+                    android:textSize="20sp"
+                    android:layout_centerHorizontal="true"/>
+
+                <TextView
+                    android:id="@+id/yAxis_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Number of Available Lots"
+                    android:layout_marginLeft="24dp"
+                    android:layout_below="@id/graph_title"
+                    android:textSize="16sp"
+                    android:textColor="#000"
+                    android:textStyle="bold"/>
+
+                <!--android:visibility="gone"-->
+                <com.github.mikephil.charting.charts.LineChart
+                    android:layout_below="@id/yAxis_label"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="12dp"
+                    android:id="@+id/trendGraphProximityFrag"
+                    android:layout_width="match_parent"
+                    android:layout_height="380dp"
+                    android:layout_marginLeft="24dp"
+                    android:layout_marginRight="24dp">
+
+                </com.github.mikephil.charting.charts.LineChart>
+
+                <TextView
+                    android:id="@+id/xAxis_label"
+                    android:layout_below="@id/trendGraphProximityFrag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Number of Hours Ago"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="16sp"
+                    android:textColor="#000"
+                    android:textStyle="bold"/>
+
+                <View
+                    android:layout_marginTop="8dp"
+                    android:layout_below="@id/xAxis_label"
+                    android:layout_width="match_parent"
+                    android:layout_marginLeft="24dp"
+                    android:layout_marginRight="24dp"
+                    android:layout_height="2dp"
+                    android:background="#5E5E5E"/>
+
+                <LinearLayout
+                    android:id="@+id/prediction_UI"
+                    android:layout_below="@id/xAxis_label"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_gravity="center_horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Predict Lot Availability: "
+                        android:textColor="#777"
+                        android:textSize="20sp"
+                        android:textStyle="bold|italic"/>
+
+                    <Button
+                        android:layout_gravity="center_horizontal"
+                        android:id="@+id/button_choose_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Date and Time"
+                        android:textColor="#fff"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:backgroundTint="@color/colorPrimary"/>
+
+                    <RelativeLayout
+                        android:id="@+id/ultimatePredictionUI"
+                        android:visibility="gone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <ProgressBar
+                        android:id="@+id/ultimateProgressBar"
+                        android:layout_centerInParent="true"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        style="?android:progressBarStyleHorizontal"
+                        android:progress="0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:rotation="-90"
+                        android:progressDrawable="@drawable/circle"/>
+
+                    <TextView
+                        android:layout_centerInParent="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/predictionResultTv"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginLeft="24dp"
+                        android:text=""
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="18sp"
+                        android:textStyle="bold|italic"
+                        android:gravity="center"/>
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
         </LinearLayout>
 
     </ScrollView>
-
-</RelativeLayout>
+    </android.support.design.widget.CoordinatorLayout>
+</android.support.design.widget.CoordinatorLayout>

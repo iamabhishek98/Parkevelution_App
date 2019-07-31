@@ -9,6 +9,118 @@ public class CarPark {
     private String mall_sat_rate;
     private String mall_sun_rate;
 
+    //updated price fields after Abhishek's inputs
+    private String mall_weekday_24rate;
+    private String mall_weekday_rates;
+
+    private String mall_saturday_24rate;
+    private String mall_saturday_rates;
+
+    private String mall_sunday_24rate;
+    private String mall_sunday_rates;
+
+
+    public String getMall_weekday_24rate() {
+        return mall_weekday_24rate;
+    }
+
+    public void setMall_weekday_24rate(String mall_weekday_24rate) {
+        this.mall_weekday_24rate = mall_weekday_24rate;
+    }
+
+    public String getMall_weekday_rates() {
+        return mall_weekday_rates;
+    }
+
+    public void setMall_weekday_rates(String mall_weekday_rates) {
+        this.mall_weekday_rates = mall_weekday_rates;
+    }
+
+    public String getMall_saturday_24rate() {
+        return mall_saturday_24rate;
+    }
+
+    public void setMall_saturday_24rate(String mall_saturday_24rate) {
+        this.mall_saturday_24rate = mall_saturday_24rate;
+    }
+
+    public String getMall_saturday_rates() {
+        return mall_saturday_rates;
+    }
+
+    public void setMall_saturday_rates(String mall_saturday_rates) {
+        this.mall_saturday_rates = mall_saturday_rates;
+    }
+
+    public String getMall_sunday_24rate() {
+        return mall_sunday_24rate;
+    }
+
+    public void setMall_sunday_24rate(String mall_sunday_24rate) {
+        this.mall_sunday_24rate = mall_sunday_24rate;
+    }
+
+    public String getMall_sunday_rates() {
+        return mall_sunday_rates;
+    }
+
+    public void setMall_sunday_rates(String mall_sunday_rates) {
+        this.mall_sunday_rates = mall_sunday_rates;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Fields for favourite carpark functionality
+    private boolean isFavourite;
+    private boolean isHDB;
+    private int fileLineNum;
+
+    public boolean getIsFavourite() {
+        return isFavourite;
+    }
+
+    public void setIsFavourite(boolean favourite) {
+        isFavourite = favourite;
+    }
+
+    public boolean getIsHDB() {
+        return isHDB;
+    }
+
+    public void setIsHDB(boolean HDB) {
+        isHDB = HDB;
+    }
+
+    public int getFileLineNum() {
+        return fileLineNum;
+    }
+
+    public void setFileLineNum(int fileLineNum) {
+        this.fileLineNum = fileLineNum;
+    }
+
     public String getMall_weekday_rate1() {
         return mall_weekday_rate1;
     }

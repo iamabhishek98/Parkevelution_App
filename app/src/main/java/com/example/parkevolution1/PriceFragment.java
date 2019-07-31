@@ -26,10 +26,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -76,11 +78,12 @@ public class PriceFragment extends Fragment {
 
     private void readCarParkData(){
         carParks.clear();
-        InputStream is = getActivity().getResources().openRawResource(R.raw.hdb_carparks4);
+        InputStream is = getActivity().getResources().openRawResource(R.raw.hdb_carparks4_1);
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(is, Charset.forName("UTF-8"))
         );
         String line = "";
+        int lineCounterHDB = 0;
         try{
             while((line = reader.readLine()) != null){
                 //split by ","
@@ -88,30 +91,35 @@ public class PriceFragment extends Fragment {
 
                 //Read the data
                 CarPark carPark = new CarPark();
-                carPark.setId(tokens[0]);
-                carPark.setName(tokens[3]);
-                carPark.setAddress(tokens[3]);
-                carPark.setHdb_car_parking_rate(tokens[4]);
+                carPark.setId(tokens[1]);
+                carPark.setName(tokens[4]);
+                carPark.setAddress(tokens[4]);
+                carPark.setHdb_car_parking_rate(tokens[5]);
                 //carPark.setHdb_motorcycle_parking_rate(tokens[5]);
                 try{
-                    Log.v("x-cord", tokens[1]);
-                    carPark.setX_coord(Double.parseDouble(tokens[1]));
+                    Log.v("x-cord", tokens[2]);
+                    carPark.setX_coord(Double.parseDouble(tokens[2]));
                 } catch(NumberFormatException e){
                     e.printStackTrace();
                     carPark.setX_coord(0);
                 }
                 try{
-                    Log.v("y-cord", tokens[2]);
-                    carPark.setY_coord(Double.parseDouble(tokens[2]));
+                    Log.v("y-cord", tokens[3]);
+                    carPark.setY_coord(Double.parseDouble(tokens[3]));
                 }
                 catch(NumberFormatException e){
                     e.printStackTrace();
                     carPark.setY_coord(0);
                 }
 
+                carPark.setFileLineNum(lineCounterHDB);
+                carPark.setIsHDB(true);
+
+
                 carPark.setDist(1000000); //initialize all distance to 100000 first
                 carPark.setDataCategory(CarPark.DataCategory.HDB);
                 carParks.add(carPark);
+                lineCounterHDB++;
             }
         }catch(IOException e){
             Log.wtf("MyActivity", "Error reading data file on line" + line, e);
@@ -119,11 +127,12 @@ public class PriceFragment extends Fragment {
         }
 
         //Reading data from the malls file
-        InputStream is2 = getActivity().getResources().openRawResource(R.raw.malls2);
+        InputStream is2 = getActivity().getResources().openRawResource(R.raw.malls3);
         BufferedReader reader2 = new BufferedReader(
                 new InputStreamReader(is2, Charset.forName("UTF-8"))
         );
 
+        int lineCounterMalls = 0;
         try{
             while((line = reader2.readLine()) != null){
                 //split by ","
@@ -131,27 +140,42 @@ public class PriceFragment extends Fragment {
 
                 //Read the data
                 CarPark carPark =  new CarPark();
-                carPark.setName(tokens[0]);
-                carPark.setAddress(tokens[0]);
+                carPark.setName(tokens[1]);
+                carPark.setAddress(tokens[1]);
                 try{
                     SVY21Coordinate svy21Coordinate = new LatLonCoordinate(
-                            Double.parseDouble(tokens[1]),
-                            Double.parseDouble(tokens[2])
+                            Double.parseDouble(tokens[2]),
+                            Double.parseDouble(tokens[3])
                     ).asSVY21();
                     carPark.setX_coord(svy21Coordinate.getEasting());
                     carPark.setY_coord(svy21Coordinate.getNorthing());
                 } catch (NumberFormatException e){
                     e.printStackTrace();
                     Log.v("Mall_Data", "Error in reading in coords "+
-                            tokens[1] + " " + tokens[2]);
+                            tokens[2] + " " + tokens[3]);
                 }
-                carPark.setMall_weekday_rate1(tokens[3]);
-                carPark.setMall_weekday_rate2(tokens[4]);
-                carPark.setMall_sat_rate(tokens[5]);
-                carPark.setMall_sun_rate(tokens[6]);
+
+                carPark.setMall_weekday_rate1(tokens[4]);
+                carPark.setMall_weekday_rate2(tokens[5]);
+                carPark.setMall_sat_rate(tokens[6]);
+                carPark.setMall_sun_rate(tokens[7]);
                 carPark.setDist(1000000); //initialize all distance to that first
                 carPark.setDataCategory(CarPark.DataCategory.SHOPPING_MALL);
+
+                //GET OUT ALL THE ABHISHEK DATA
+                carPark.setMall_weekday_24rate(tokens[8]);
+                carPark.setMall_weekday_rates(tokens[9]);
+                carPark.setMall_saturday_24rate(tokens[10]);
+                carPark.setMall_saturday_rates(tokens[11]);
+                carPark.setMall_sunday_24rate(tokens[12]);
+                carPark.setMall_sunday_rates(tokens[13]);
+
+
+                carPark.setIsHDB(false);
+                carPark.setFileLineNum(lineCounterMalls);
+
                 carParks.add(carPark);
+                lineCounterMalls++;
             }
         } catch(IOException e){
             Log.d("Mall_Data", "Error reading data on file" + line, e);
@@ -193,7 +217,6 @@ public class PriceFragment extends Fragment {
             double dist = locationCurrent.distanceTo(locationPoint);
             double rounded_dist = Math.round(dist*10)/10.0;
             cpArray[i].setDist(rounded_dist);
-
         }
 
         //update the list view
@@ -228,29 +251,250 @@ public class PriceFragment extends Fragment {
 
             //setting the price information
             String priceInfo = "";
+            String abhiPrice = "";
             if (carPark.getDataCategory() == CarPark.DataCategory.HDB) {
-                priceInfo += "Car Rate: "+carPark.getHdb_car_parking_rate() + "\n"
+                abhiPrice += "Car Rate: "+carPark.getHdb_car_parking_rate() + "\n"
                                 + "Motorcycle Rate: $0.65/lot";
             } else{
+                /******************************
+                 * ABHISHEK'S PRICE ALGORITHM
+                 *                            GOES HERE
+                 *
+                 * */
                 //shopping mall data
                 Calendar calendar = Calendar.getInstance();
                 int day = calendar.get(Calendar.DAY_OF_WEEK);
+
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                String str = sdf.format(new Date());
+                Log.v("ABHISHEK BOI", str);
                 switch (day) {
                     case Calendar.SUNDAY:
-                        priceInfo += carPark.getMall_sun_rate();
+                        if(!(carPark.getMall_sunday_24rate()).equals("")){
+                            if((carPark.getMall_sunday_24rate()).equals("F")){
+                                abhiPrice = "Free for the first hour";
+                            } else if((carPark.getMall_sunday_24rate()).equals("C")){
+                                abhiPrice = "Closed during this hour";
+                            } else {
+                                abhiPrice = "Car Rate: $"+carPark.getMall_sunday_24rate()+" for the first 1hr";
+                            }
+                        } else {
+                            String[] timeComponents = str.split(":");
+                            double currHr = Double.parseDouble(timeComponents[0]);
+                            double currMin = Double.parseDouble(timeComponents[1]);
+                            double currAbhiTime = currHr*100+currMin;
+
+                            String[] tokens = carPark.getMall_sunday_rates().split(";");
+                            for(String x : tokens){
+                                String[] pair = x.split(":");
+                                String timeRange  = pair[0];
+
+                                String[] times = timeRange.split("-");
+                                Log.v("Samuel errorrr", "Carparkname: "+ carPark.getName());
+
+                                //this is my aaaa
+                                double timeLow = Double.parseDouble(times[0]);
+                                //if(times[1].equals("0000")) times[1] = "2359";
+                                //this is my bbbb
+                                double timeHigh = Double.parseDouble(times[1]);
+
+                                int a_hr = (int)timeLow/100;
+                                int a_min = (int)timeLow%100;
+
+                                int b_hr = (int)timeHigh/100;
+                                int b_min = (int) timeHigh%100;
+
+                                boolean abhiCond = (currHr == a_hr && currMin < a_min) || (currHr == b_hr && currMin > b_min);
+                                if(b_hr > a_hr){
+                                    if(currHr >= a_hr && currHr <= b_hr){
+                                        //check minutes also
+                                        if(abhiCond) continue;
+                                        else{
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    if(currHr >= a_hr && currHr <= 23 || currHr <= b_hr){
+                                        if(abhiCond) continue;
+                                        else {
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case Calendar.SATURDAY:
-                        // Current day is Monday
-                        priceInfo += carPark.getMall_sat_rate();
+                        if(!(carPark.getMall_saturday_24rate()).equals("")){
+                            if((carPark.getMall_saturday_24rate()).equals("F")){
+                                abhiPrice = "Free for the first hour";
+                            } else if((carPark.getMall_saturday_24rate()).equals("C")){
+                                abhiPrice = "Closed during this hour";
+                            } else {
+                                abhiPrice = "Car Rate: $"+carPark.getMall_saturday_24rate()+" for the first 1hr";
+                            }
+                        } else {
+                            String[] timeComponents = str.split(":");
+                            double currHr = Double.parseDouble(timeComponents[0]);
+                            double currMin = Double.parseDouble(timeComponents[1]);
+                            double currAbhiTime = currHr*100+currMin;
+
+                            String[] tokens = carPark.getMall_saturday_rates().split(";");
+                            for(String x : tokens){
+                                String[] pair = x.split(":");
+                                String timeRange  = pair[0];
+
+                                String[] times = timeRange.split("-");
+                                //this is my aaaa
+                                double timeLow = Double.parseDouble(times[0]);
+                                //if(times[1].equals("0000")) times[1] = "2359";
+                                //this is my bbbb
+                                double timeHigh = Double.parseDouble(times[1]);
+
+                                int a_hr = (int)timeLow/100;
+                                int a_min = (int)timeLow%100;
+
+                                int b_hr = (int)timeHigh/100;
+                                int b_min = (int) timeHigh%100;
+
+                                boolean abhiCond = (currHr == a_hr && currMin < a_min) || (currHr == b_hr && currMin > b_min);
+                                if(b_hr >= a_hr){
+                                    if(currHr >= a_hr && currHr <= b_hr){
+                                        //check minutes also
+                                        if(abhiCond) continue;
+                                        else{
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    if(currHr >= a_hr && currHr <= 23 || currHr <= b_hr){
+                                        if(abhiCond) continue;
+                                        else {
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         break;
                     default: //Weekday
-                        priceInfo += carPark.getMall_weekday_rate1() +"\n" +
-                                carPark.getMall_weekday_rate2();
+                        if(!(carPark.getMall_weekday_24rate()).equals("")){
+                            if((carPark.getMall_weekday_24rate()).equals("F")){
+                                abhiPrice = "Free for the first hour";
+                            } else if((carPark.getMall_weekday_24rate()).equals("C")){
+                                abhiPrice = "Closed during this hour";
+                            } else {
+                                abhiPrice = "Car Rate: $"+carPark.getMall_weekday_24rate()+" for the first 1hr";
+                            }
+                        } else {
+                            String[] timeComponents = str.split(":");
+                            double currHr = Double.parseDouble(timeComponents[0]);
+                            double currMin = Double.parseDouble(timeComponents[1]);
+                            double currAbhiTime = currHr*100+currMin;
+
+                            String[] tokens = carPark.getMall_weekday_rates().split(";");
+                            for(String x : tokens){
+                                String[] pair = x.split(":");
+                                String timeRange  = pair[0];
+
+                                String[] times = timeRange.split("-");
+                                //this is my aaaa
+                                double timeLow = Double.parseDouble(times[0]);
+                                //if(times[1].equals("0000")) times[1] = "2359";
+                                //this is my bbbb
+                                double timeHigh = Double.parseDouble(times[1]);
+
+                                int a_hr = (int)timeLow/100;
+                                int a_min = (int)timeLow%100;
+
+                                int b_hr = (int)timeHigh/100;
+                                int b_min = (int) timeHigh%100;
+
+                                boolean abhiCond = (currHr == a_hr && currMin < a_min) || (currHr == b_hr && currMin > b_min);
+                                if(b_hr > a_hr){
+                                    if(currHr >= a_hr && currHr <= b_hr){
+                                        //check minutes also
+                                        if(abhiCond) continue;
+                                        else{
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    if(currHr >= a_hr && currHr <= 23 || currHr <= b_hr){
+                                        if(abhiCond) continue;
+                                        else {
+                                            //abhiPrice = x;
+                                            if(pair[1].equals("F")){
+                                                abhiPrice = "Free for the first hour";
+                                            } else if(pair[1].equals("C")){
+                                                abhiPrice = "Closed during this hour";
+                                            } else {
+                                                abhiPrice = "Car Rate: $"+pair[1].substring(1);
+                                                abhiPrice += " for the first hour";
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         break;
                 }
-            }
-            tvPrice.setText(priceInfo);
 
+            }
+            //tvPrice.setText(priceInfo);
+
+            if(abhiPrice.equals("F")){
+                abhiPrice = "Free for the first hour!";
+            } else if(abhiPrice.equals("C")){
+                abhiPrice = "Closed at this hour.";
+            }
+            tvPrice.setText(abhiPrice);
             ImageView arrow = convertView.findViewById(R.id.price_arrow);
             View mainV = convertView.findViewById(R.id.mainV_price);
 
@@ -259,7 +503,8 @@ public class PriceFragment extends Fragment {
                 public void onClick(View view) {
                     LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coord(), carPark.getX_coord())).asLatLon();
 
-                    ((MainActivity)getActivity()).setLatLonCoordinate(latLonCoordinateCP);
+                    //the selected latLong will get updated to the location of the selected carpark
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP);
 
 
                     LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
@@ -272,6 +517,11 @@ public class PriceFragment extends Fragment {
                 public void onClick(View view) {
                     PriceDetailFragment priceDetailFragment = new PriceDetailFragment();
                     Bundle bundle = new Bundle();
+
+                    //setting the selected location in MainActivity
+                    LatLonCoordinate latLonCoordinateCP1 = (new SVY21Coordinate(carPark.getY_coord(), carPark.getX_coord())).asLatLon();
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP1);
+
                     //pass in the data here
                     Geocoder geocoder;
                     List<Address> addresses;
@@ -290,6 +540,15 @@ public class PriceFragment extends Fragment {
                                 bundle.putString("hdb_car_parking_rate", carPark.getHdb_car_parking_rate());
                                 //bundle.putString("hdb_motorcycle_parking_rate", carPark.getHdb_motorcycle_parking_rate());
                                 bundle.putString("carpark-id", carPark.getId());
+
+
+                                //Information for favourite carpark
+                                bundle.putInt("fileLineNum", carPark.getFileLineNum());
+                                bundle.putBoolean("isFavourite", carPark.getIsFavourite());
+                                bundle.putBoolean("isHDB", carPark.getIsHDB());
+
+
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Log.v("Location_result", "Get address for the carpark list view isn't working");
@@ -306,6 +565,16 @@ public class PriceFragment extends Fragment {
                                 bundle.putDouble("x-coord", latLonCoordinateCP.getLatitude());
                                 bundle.putDouble("y-coord", latLonCoordinateCP.getLongitude());
                                 bundle.putString("data-cat", "SHOPPING_MALL");
+                                bundle.putString("shopping-weekday1", carPark.getMall_weekday_rate1());
+                                bundle.putString("shopping-weekday2", carPark.getMall_weekday_rate2());
+                                bundle.putString("shopping-sat", carPark.getMall_sat_rate());
+                                bundle.putString("shopping-sun", carPark.getMall_sun_rate());
+
+                                //Information for favourite carpark
+                                bundle.putInt("fileLineNum", carPark.getFileLineNum());
+                                bundle.putBoolean("isFavourite", carPark.getIsFavourite());
+                                bundle.putBoolean("isHDB", carPark.getIsHDB());
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Log.v("Location_result", "Get address for the carpark list view isn't working");
@@ -321,7 +590,7 @@ public class PriceFragment extends Fragment {
                     priceDetailFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
                             .setTransition(FragmentTransaction.TRANSIT_ENTER_MASK)
-                            .replace(R.id.main_fragment, priceDetailFragment)
+                            .add(R.id.main_fragment, priceDetailFragment)
                             .addToBackStack(null)
                             .commit();
                 }

@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -79,26 +80,29 @@ public class AvailabilityFragment extends Fragment {
 
         listView = getView().findViewById(R.id.availabilityListView);
 
-        myAvailabilityAdapter = new MyAvailabilityAdapter(getContext(), availCarParks);
-        listView.setAdapter(myAvailabilityAdapter); //update later in data method
-
         if (currentSVY21Location != null) {
             calculateNearByCarparks();
         }
-        //getJsonButton = getView().findViewById(R.id.getJsonButton);
-        //txtJson = getView().findViewById(R.id.txtJson);
 
         mQueue = Volley.newRequestQueue(getContext());
-       /*
-        getJsonButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                jsonParse();
-            }
-        });*/
         jsonParse();
+        myAvailabilityAdapter = new MyAvailabilityAdapter(getContext(), availCarParks);
+        listView.setAdapter(myAvailabilityAdapter); //update later in data method
+        mQueue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
+            @Override
+            public void onRequestFinished(Request<Object> request) {
+                //listView.invalidateViews();
+                //Toast.makeText(getContext(), "The size of array: "+availCarParks.size(), Toast.LENGTH_LONG).show();
+                myAvailabilityAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
+    @Override
+    public void onPause() {
+        availCarParks.clear();
+        super.onPause();
+    }
 
     private void calculateNearByCarparks() {
         readCarParkData();
@@ -133,6 +137,7 @@ public class AvailabilityFragment extends Fragment {
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(is, Charset.forName("UTF-8"))
         );
+
         String line = "";
         try {
             while ((line = reader.readLine()) != null) {
@@ -166,8 +171,6 @@ public class AvailabilityFragment extends Fragment {
             Log.wtf("MyActivity", "Error reading data file on line" + line, e);
             e.printStackTrace();
         }
-
-
     }
 
     ArrayList<AvailCarPark> availCarParks = new ArrayList<>();
@@ -210,6 +213,7 @@ public class AvailabilityFragment extends Fragment {
                                         availCarPark.setX_coordSVY21(cpArray[i].getX_coord());
                                         availCarPark.setY_coordSVY21(cpArray[i].getY_coord());
                                         availCarParks.add(availCarPark);
+                                        break;
                                     }
                                 }
                             }
@@ -222,8 +226,6 @@ public class AvailabilityFragment extends Fragment {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        listView.invalidateViews();
-                        myAvailabilityAdapter.notifyDataSetChanged();
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -235,70 +237,6 @@ public class AvailabilityFragment extends Fragment {
 
         mQueue.add(request);
     }
-
-    /*
-    ProgressDialog pd; //this is only available from API 28 so find a way to make it available to older APIs
-
-    private class JsonTask extends AsyncTask<String, String, String>{
-
-        protected void onPreExecute(){
-            super.onPreExecute();
-            pd = new ProgressDialog(getContext());
-            pd.setMessage("Please wait");
-            pd.setCancelable(false);
-            pd.show();
-        }
-
-        protected String doInBackground(String... params){
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-
-            try{
-                URL url = new URL(params[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream stream = connection.getInputStream();
-                reader = new BufferedReader(new InputStreamReader(stream));
-
-                StringBuffer buffer = new StringBuffer();
-                String line = "";
-
-                while((line = reader.readLine()) != null){
-                    buffer.append(line + "\n");
-                    Log.d("Response: ", "> "+line); //here you will get the whole response
-                }
-
-                return buffer.toString();
-            } catch(MalformedURLException e){
-                e.printStackTrace();
-            } catch(IOException e){
-                e.printStackTrace();
-            } finally{
-                if(connection != null){
-                    connection.disconnect();
-                }
-                try{
-                    if(reader != null){
-                        reader.close();
-                    }
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result){
-            super.onPostExecute(result);
-            if(pd.isShowing()){
-                pd.dismiss();
-            }
-            txtJson.setText(result);
-        }
-    }
-    */
 
     class AvailCarPark {
         private String name;
@@ -371,9 +309,7 @@ public class AvailabilityFragment extends Fragment {
                     + " carpark total lots: " + this.totalLots
                     + " available lots: " + this.availLots;
         }
-
     }
-
     class MyAvailabilityAdapter extends ArrayAdapter<AvailCarPark> {
         Context context;
         AvailCarPark availCarPark;
@@ -385,7 +321,7 @@ public class AvailabilityFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             final AvailCarPark carPark = getItem(position);
-
+            Log.v("ListSizeTest", "Number of carparks"+carParks.size());
             if (convertView == null)
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.row_availability, parent, false);
 
@@ -411,7 +347,8 @@ public class AvailabilityFragment extends Fragment {
                 public void onClick(View view) {
                     LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
 
-                    ((MainActivity)getActivity()).setLatLonCoordinate(latLonCoordinateCP);
+                    //the selected latLong will get updated to the location of the selected carpark
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP);
 
                     LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
                     Main_Fragment.addMarkerToMap(latLng, carPark.getName());
@@ -423,6 +360,13 @@ public class AvailabilityFragment extends Fragment {
                 public void onClick(View view) {
                     AvailaibilityDetailFragment availaibilityDetailFragment = new AvailaibilityDetailFragment();
                     Bundle bundle = new Bundle();
+
+                    //setting the selected location in MainActivity
+                    LatLonCoordinate latLonCoordinateCP1 = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP1);
+
+
+
                     //pass in data here
                     Geocoder geocoder;
                     List<Address> addresses;
@@ -449,7 +393,7 @@ public class AvailabilityFragment extends Fragment {
                     availaibilityDetailFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
                             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                            .replace(R.id.main_fragment, availaibilityDetailFragment)
+                            .add(R.id.main_fragment, availaibilityDetailFragment)
                             .addToBackStack(null)
                             .commit();
                 }
