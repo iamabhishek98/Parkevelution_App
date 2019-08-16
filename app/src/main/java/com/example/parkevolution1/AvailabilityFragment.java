@@ -12,9 +12,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +39,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -48,6 +51,7 @@ public class AvailabilityFragment extends Fragment {
     private RequestQueue mQueue;
     public static SVY21Coordinate currentSVY21Location;
     private CarPark[] cpArray = new CarPark[50];
+
     private List<CarPark> carParks = new ArrayList<>();
 
     public AvailabilityFragment() {
@@ -64,6 +68,8 @@ public class AvailabilityFragment extends Fragment {
     //Button getJsonButton;
     //TextView txtJson;
     private ListView listView;
+    private Spinner spinner;
+    private static final String[] paths = {"Default", "Highest Availability", "Lowest Availability"};
 
     private MyAvailabilityAdapter myAvailabilityAdapter;
     @Override
@@ -79,6 +85,45 @@ public class AvailabilityFragment extends Fragment {
         }
 
         listView = getView().findViewById(R.id.availabilityListView);
+
+        spinner = getView().findViewById(R.id.spinner);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, paths);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setSelection(0, true);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                switch (i){
+                    case 0:
+                            //update the list view
+                            listView.invalidateViews();
+                        Log.v("Samuel-tired", "Size of avail car parks default: "+availCarParks.size());
+                            listView.setAdapter(new MyAvailabilityAdapter(getContext(), availCarParks));
+                            break;
+                    case 1:
+                            Log.v("Samuel-tired", "Size of avail car parks descending: "+availCarParksDescending.size());
+                            listView.setAdapter(new MyAvailabilityAdapter(getContext(), availCarParksDescending));
+                        listView.invalidateViews();
+                        break;
+                    case 2:
+                        Log.v("Samuel-tired", "Size of avail car parks ascending: "+availCarParksAscending.size());
+                        listView.setAdapter(new MyAvailabilityAdapter(getContext(), availCarParksAscending));
+                        listView.invalidateViews();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
 
         if (currentSVY21Location != null) {
             calculateNearByCarparks();
@@ -102,6 +147,7 @@ public class AvailabilityFragment extends Fragment {
     public void onPause() {
         availCarParks.clear();
         super.onPause();
+        spinner.setSelection(0);
     }
 
     private void calculateNearByCarparks() {
@@ -174,6 +220,10 @@ public class AvailabilityFragment extends Fragment {
     }
 
     ArrayList<AvailCarPark> availCarParks = new ArrayList<>();
+    ArrayList<AvailCarPark> availCarParksAscending = new ArrayList<>();
+    ArrayList<AvailCarPark> availCarParksDescending = new ArrayList<>();
+
+
     ArrayList<AvailCarPark> allAvailCarParks = new ArrayList<>();
 
     private void jsonParse() {
@@ -219,10 +269,40 @@ public class AvailabilityFragment extends Fragment {
                             }
 
                             //call function to display the list of data in the listview
-                            for (int i = 0; i < availCarParks.size(); i++) {
-                                Log.v("AvailCarparks", availCarParks.get(i).toString());
+                            if(availCarParksDescending.size() == 0){
+                                for (int i = 0; i < availCarParks.size(); i++) {
+                                    availCarParksDescending.add(availCarParks.get(i));
+                                    availCarParksAscending.add(availCarParks.get(i));
+                                }
                             }
-                            Log.v("Samuel", "Success + availCarparks size:" + availCarParks.size());
+                            Log.v("Samuel-tired", "After allocating, descending size: "+ availCarParksDescending.size());
+                            Log.v("Samuel-tired", "After allocating, ascending size: "+ availCarParksAscending.size());
+
+                            Collections.sort(availCarParksAscending, new Comparator<AvailCarPark>() {
+                                @Override
+                                public int compare(AvailCarPark availCarPark, AvailCarPark t1) {
+                                    if(availCarPark.getAvailLots() > t1.availLots){
+                                        return 1;
+                                    } else if(availCarPark.getAvailLots() < t1.getAvailLots()){
+                                        return -1;
+                                    } else {
+                                        return 0;
+                                    }
+                                }
+                            });
+
+                            Collections.sort(availCarParksDescending, new Comparator<AvailCarPark>() {
+                                @Override
+                                public int compare(AvailCarPark availCarPark, AvailCarPark t1) {
+                                    if(availCarPark.getAvailLots() > t1.availLots){
+                                        return -1;
+                                    } else if(availCarPark.getAvailLots() < t1.getAvailLots()){
+                                        return 1;
+                                    } else {
+                                        return 0;
+                                    }
+                                }
+                            });
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -310,6 +390,8 @@ public class AvailabilityFragment extends Fragment {
                     + " available lots: " + this.availLots;
         }
     }
+
+
     class MyAvailabilityAdapter extends ArrayAdapter<AvailCarPark> {
         Context context;
         AvailCarPark availCarPark;
@@ -402,4 +484,98 @@ public class AvailabilityFragment extends Fragment {
             return convertView;
         }
     }
+    /*
+
+    class MyAvailabilityAdapter extends ArrayAdapter<AvailCarPark> {
+        Context context;
+        AvailCarPark availCarPark;
+
+        public MyAvailabilityAdapter(Context c, AvailCarPark[] carParks) {
+            super(c, 0, carParks);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            final AvailCarPark carPark = getItem(position);
+            Log.v("ListSizeTest", "Number of carparks"+carParks.size());
+            if (convertView == null)
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.row_availability, parent, false);
+
+            TextView tvName = convertView.findViewById(R.id.availability_name);
+            TextView tvAvailability = convertView.findViewById(R.id.availability_value);
+            tvName.setText(carPark.getAddress());
+
+            //set the color of the availability here
+            tvAvailability.setText(carPark.getLotType() + ": " + carPark.getAvailLots() + "/" + carPark.getTotalLots());
+            double availRatio  = (carPark.getAvailLots() *1.0)/carPark.getTotalLots();  // This value will be between 0 to 1
+            if(availRatio < 0.33){
+                tvAvailability.setTextColor(getResources().getColor(R.color.red_color));
+            } else if(availRatio < 0.67){
+                tvAvailability.setTextColor(getResources().getColor(R.color.orange_color));
+            } else {
+                tvAvailability.setTextColor(getResources().getColor(R.color.green_color));
+            }
+            ImageView arrow = convertView.findViewById(R.id.availability_arrow);
+            View mainV = convertView.findViewById(R.id.mainV_availability);
+
+            mainV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    LatLonCoordinate latLonCoordinateCP = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
+
+                    //the selected latLong will get updated to the location of the selected carpark
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP);
+
+                    LatLng latLng = new LatLng(latLonCoordinateCP.getLatitude(), latLonCoordinateCP.getLongitude());
+                    Main_Fragment.addMarkerToMap(latLng, carPark.getName());
+                }
+            });
+
+            arrow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AvailaibilityDetailFragment availaibilityDetailFragment = new AvailaibilityDetailFragment();
+                    Bundle bundle = new Bundle();
+
+                    //setting the selected location in MainActivity
+                    LatLonCoordinate latLonCoordinateCP1 = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
+                    ((MainActivity)getActivity()).setSelectedLatLonCoordinate(latLonCoordinateCP1);
+
+
+
+                    //pass in data here
+                    Geocoder geocoder;
+                    List<Address> addresses;
+                    //all the Carpark DataCategory will be availability in this case
+                    bundle.putString("carpark-id", carPark.getName());
+                    bundle.putString("carpark-name", carPark.getAddress());
+                    bundle.putString("carpark-lot-type", carPark.getLotType());
+                    bundle.putInt("carpark-total-lots", carPark.getTotalLots());
+                    bundle.putInt("carpark-avail-lots", carPark.getAvailLots());
+                    //Address data
+                    geocoder = new Geocoder(getActivity(), Locale.getDefault());
+                    try{
+                        LatLonCoordinate latLonCoordinateCp = (new SVY21Coordinate(carPark.getY_coordSVY21(), carPark.getX_coordSVY21())).asLatLon();
+                        addresses = geocoder.getFromLocation(latLonCoordinateCp.getLatitude(), latLonCoordinateCp.getLongitude(), 1);
+                        bundle.putString("carpark-address", addresses.get(0).getAddressLine(0));
+                        bundle.putDouble("x-coord", latLonCoordinateCp.getLatitude());
+                        bundle.putDouble("y-coord", latLonCoordinateCp.getLongitude());
+                        bundle.putString("data-cat", "AVAILABILITY");
+                    } catch(IOException e){
+                        e.printStackTrace();
+                        Log.v("Location_result_avail", "Get address for the carpark list view isnt't working");
+                    }
+
+                    availaibilityDetailFragment.setArguments(bundle);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                            .add(R.id.main_fragment, availaibilityDetailFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            });
+
+            return convertView;
+        }
+    }*/
 }

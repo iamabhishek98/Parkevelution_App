@@ -41,7 +41,7 @@ public class FixedTabsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
 
@@ -50,11 +50,13 @@ public class FixedTabsPagerAdapter extends FragmentPagerAdapter {
     public CharSequence getPageTitle(int position) {
         switch(position){
             case 0:
-                return "PROXIMITY";
+                return "DIST";
             case 1:
                 return "PRICE";
             case 2:
-                return "AVAILABILITY";
+                return "AVAIL";
+            case 3:
+                return "RECC";
             default:
                 return null;
         }

@@ -195,7 +195,6 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                 //Toast.makeText(getContext(), currentLocation.getLatitude() + "" + currentLocation.getLongitude(), Toast.LENGTH_LONG).show();
                 if (currentCoord == null) {
                     currentCoord = new LatLonCoordinate(default_lat, default_long);
-
                 }
                 currentSVY21Location = convertToSVY21(currentCoord);
                 //SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
@@ -214,20 +213,6 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
                 }
                 Toast.makeText(getContext(), "Your current location isn't available yet", Toast.LENGTH_LONG).show();
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -383,6 +368,7 @@ public class Main_Fragment extends Fragment implements OnMapReadyCallback, Googl
         fr_list.add(new ProximityFragment());
         fr_list.add(new PriceFragment());
         fr_list.add(new AvailabilityFragment());
+        fr_list.add(new RecommendedFragment());
         pagerAdapter = new FixedTabsPagerAdapter(getActivity().getSupportFragmentManager(), fr_list);
 
         viewPager.setAdapter(pagerAdapter);

@@ -647,7 +647,6 @@ public class AvailaibilityDetailFragment extends Fragment implements OnMapReadyC
             }
         });
 
-
         //the Y-axis
         YAxis yAxis = lineChart.getAxisLeft();
         yAxis.setTextSize(16f);
@@ -667,7 +666,11 @@ public class AvailaibilityDetailFragment extends Fragment implements OnMapReadyC
 //        }
 
         for(int i=0; i<dataset.size(); i++){
-            yValues.add(new Entry(i+1, dataset.get(i)));
+            int val = dataset.get(i);
+            if(val > total_cplots){
+                val = total_cplots;
+            }
+            yValues.add(new Entry(i+1, val));
         }
 
         LineDataSet set1 = new LineDataSet(yValues, "Available Lots");
@@ -842,14 +845,6 @@ public class AvailaibilityDetailFragment extends Fragment implements OnMapReadyC
         animation.setInterpolator(new DecelerateInterpolator());
         animation.start();
     }
-
-
-
-
-
-
-
-
 
 
     private void setUpAdditionalInfo(ArrayList<JSONObject> dataObj, LineChart lineChart, final View entireView){

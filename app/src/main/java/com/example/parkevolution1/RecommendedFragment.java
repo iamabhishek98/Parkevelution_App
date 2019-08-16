@@ -1,6 +1,5 @@
 package com.example.parkevolution1;
 
-
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -14,14 +13,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.model.LatLng;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,22 +45,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-
-public class PriceFragment extends Fragment {
+public class RecommendedFragment extends Fragment {
 
     public SVY21Coordinate currentSVY21Location;
     private List<CarPark> carParks = new ArrayList<>();
-
-    //carparks by distance
     private CarPark[] cpArray = new CarPark[50];
-    private CarPark[] cpArrayReverse = new CarPark[50];
-    private CarPark[] cpArrayOriginal = new CarPark[50];
 
-    //carparks by price
-    private CarPark[] cpArrayPrice = new CarPark[50];
-    private CarPark[] cpArrayPriceReverse = new CarPark[50];
-
-    public PriceFragment() {
+    public RecommendedFragment() {
         // Required empty public constructor
     }
 
@@ -61,12 +59,11 @@ public class PriceFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_price, container, false);
+        return inflater.inflate(R.layout.fragment_recommended, container, false);
+
     }
 
     private ListView listView;
-    private Spinner spinner;
-    private static final String[] paths = {"Default", "Cheapest First", "Cheapest Last"};
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -74,41 +71,15 @@ public class PriceFragment extends Fragment {
         LatLonCoordinate testCoordinate = new LatLonCoordinate(1.344261, 103.720750);
         currentSVY21Location = testCoordinate.asSVY21();
 
+        mQueue = Volley.newRequestQueue(getContext());
+
         LatLonCoordinate realCoordinate = MainActivity.getLatLonCoordinate();
         if(realCoordinate != null){
             currentSVY21Location = realCoordinate.asSVY21();
             Log.v("Location_test", "Real coordinate for PRICE is obtained");
         }
 
-        listView = getView().findViewById(R.id.priceListView);
-        spinner = getView().findViewById(R.id.spinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, paths);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-
-        spinner.setSelection(0, true);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                switch (i){
-                    case 0:
-                        listView.setAdapter(new MyPriceAdapter(getContext(), cpArray));
-                        break;
-                    case 1:
-                        listView.setAdapter(new MyPriceAdapter(getContext(), cpArrayPrice));
-                        break;
-                    case 2:
-                        listView.setAdapter(new MyPriceAdapter(getContext(), cpArrayPriceReverse));
-                    default:
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
+        listView = getView().findViewById(R.id.reccListView);
 
         if(currentSVY21Location != null){
             readCarParkData();
@@ -211,7 +182,6 @@ public class PriceFragment extends Fragment {
                 carPark.setMall_sunday_24rate(tokens[12]);
                 carPark.setMall_sunday_rates(tokens[13]);
 
-
                 carPark.setIsHDB(false);
                 carPark.setFileLineNum(lineCounterMalls);
 
@@ -223,6 +193,10 @@ public class PriceFragment extends Fragment {
             e.printStackTrace();
         }
     }
+
+    //Abhishek Constants -> 10 cents per 50 metres
+    final private double price_threshold = 0.1;
+    final private double distance_threshold = 50;
 
     //this method can be called once initially and everytime the current location FAB is pressed
     private void displayCarparks_price(){
@@ -260,48 +234,238 @@ public class PriceFragment extends Fragment {
             cpArray[i].setDist(rounded_dist);
         }
 
+        //setting the price for these 50 carparks
+        setHourlyPriceForSelectedCarparks(cpArray);
+
+        //setting the availability if info is avail
+        setAvailabilityInformation(cpArray);
+
+        //calculate recommendability index for each carpark
+        setReccIndex(cpArray);
+
+        //insert Abhishek's sorting algorithm for recommended carpark
 
         /**
-         * Here we have to do allocation of the hourly prices for the carparks
+         * Sorting method 0
          * */
 
+        /**
+         * Due to closed_val in the setHourlyPrice method, carparks that are closed will automatically be filtered to be displayed last :)
+         *
+         * */
 
-        setHourlyPriceForSelectedCarparks(cpArray);
-        //set cpArrayPrice and cpArrayPriceReverse
-
-        cpArrayOriginal = Arrays.copyOf(cpArray, cpArray.length);
-
-        cpArrayPrice = Arrays.copyOf(cpArray, cpArray.length);
-        Arrays.sort(cpArrayPrice, new Comparator<CarPark>() {
+        Arrays.sort(cpArray, new Comparator<CarPark>() {
             @Override
-            public int compare(CarPark carPark, CarPark t1) {
-                if(carPark.getHourly_price() - t1.getHourly_price() > 0){
+            public int compare(CarPark c1, CarPark c2) {
+                if(c1.getReccIndex() > c2.getReccIndex()){
                     return 1;
-                } else  if(carPark.getHourly_price() - t1.getHourly_price() < 0){
+                } else if(c1.getReccIndex() < c2.getReccIndex()){
                     return -1;
                 } else {
                     return 0;
                 }
-
             }
         });
 
-        cpArrayPriceReverse = Arrays.copyOf(cpArrayPrice, cpArray.length);
-        Collections.reverse(Arrays.asList(cpArrayPriceReverse));
 
-        //cpArrayReverse = Arrays.copyOf(cpArray, cpArray.length);
-        //Collections.reverse(Arrays.asList(cpArrayReverse));
+        //printer function to print out the indices of all the sorted carpark
+        for(int i=0; i <cpArray.length; i++){
+            Log.v("recc-index", "carpark recc index: "+cpArray[i].getReccIndex());
+        }
+
+//        Arrays.sort(cpArray, new Comparator<CarPark>() {
+//            @Override
+//            public int compare(CarPark carPark, CarPark t1) {
+//                if(carPark.getDist() - t1.getDist() <= 0 && carPark.getHourly_price() <= t1.getHourly_price()){
+//                    //nearer and cheaper
+//                    return -1; //obviously don't swap
+//                } else if(carPark.getDist() - t1.getDist() > 0 && carPark.getHourly_price() > t1.getHourly_price()){
+//                    //further and more expensive
+//                    return 1; //obviously swap
+//                } else if(carPark.getDist() - t1.getDist() <=0 && carPark.getHourly_price() > t1.getHourly_price() ){
+//                        //nearer but more expensive -> compare the opportunity cost first
+//                        double dist_diff = Math.abs(carPark.getDist() - t1.getDist());
+//                        if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold+ t1.getHourly_price() < carPark.getHourly_price()){
+//                            return 1; //swap
+//                        } else if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + t1.getHourly_price() > carPark.getHourly_price()){
+//                            return -1; //don't swap. The cheaper price isn't worth it
+//                        } else {
+//                            return 0;
+//                        }
+//                    } else if(carPark.getDist() - t1.getDist() > 0 && carPark.getHourly_price() < t1.getHourly_price()){
+//                        //further but cheaper
+//                        double dist_diff = Math.abs(carPark.getDist() - t1.getDist());
+//                        if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + carPark.getHourly_price() < t1.getHourly_price()){
+//                            return 1; //swap
+//                        } else if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + carPark.getHourly_price() > t1.getHourly_price()){
+//                            return -1; //don't swap. The cheaper price isn't worth it
+//                        } else {
+//                            return 0;
+//                        }
+//                    } else {
+//                        return 0;
+//                    }
+//            }
+//        });
 
 
+
+
+
+        /**
+         *  Sorting method I
+         * */
+
+
+//        Arrays.sort(cpArray, new Comparator<CarPark>() {
+//            @Override
+//            public int compare(CarPark carPark, CarPark t1) {
+//                //check for availability first
+//                if(carPark.getDataCategory() == CarPark.DataCategory.HDB && t1.getDataCategory() == CarPark.DataCategory.HDB && carPark.getAvail_lots() == 0 && t1.getAvail_lots() == 0){
+//                        //both have 0 availabile lots -> sort by distance
+//                        if(carPark.getDist() > t1.getDist()){
+//                            return 1;
+//                        } else if(carPark.getDist() < t1.getDist()){
+//                            return -1;
+//                        } else {
+//                            return 0;
+//                        }
+//                } else {
+//                    if(carPark.getDataCategory() == CarPark.DataCategory.HDB && t1.getDataCategory() == CarPark.DataCategory.SHOPPING_MALL && carPark.getAvail_lots() == 0){
+//                        //put shopping mall in front
+//                        return 1;
+//                    } else if(carPark.getDataCategory() == CarPark.DataCategory.SHOPPING_MALL && t1.getDataCategory() == CarPark.DataCategory.HDB && t1.getAvail_lots() == 0){
+//                        //retain shopping mall in front
+//                        return -1;
+//                    } else if(carPark.getDist() - t1.getDist() <= 0 && carPark.getHourly_price() <= t1.getHourly_price()){
+//                        //nearer and cheaper
+//                        return -1; //obviously don't swap
+//                    } else if(carPark.getDist() - t1.getDist() > 0 && carPark.getHourly_price() > t1.getHourly_price()){
+//                        //further and more expensive
+//                        return 1; //obviously swap
+//                    } else if(carPark.getDist() - t1.getDist() <=0 && carPark.getHourly_price() > t1.getHourly_price() ){
+//                        //nearer but more expensive -> compare the opportunity cost first
+//                        double dist_diff = Math.abs(carPark.getDist() - t1.getDist());
+//                        if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold+ t1.getHourly_price() < carPark.getHourly_price()){
+//                            return 1; //swap
+//                        } else if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + t1.getHourly_price() > carPark.getHourly_price()){
+//                            return -1; //don't swap. The cheaper price isn't worth it
+//                        } else {
+//                            return 0;
+//                        }
+//                    } else if(carPark.getDist() - t1.getDist() >= 0 && carPark.getHourly_price() < t1.getHourly_price()){
+//                        //further but cheaper
+//                        double dist_diff = Math.abs(carPark.getDist() - t1.getDist());
+//                        if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + carPark.getHourly_price() < t1.getHourly_price()){
+//                            return 1; //swap
+//                        } else if(/*dist_diff/distance_threshold * price_threshold*/ (Math.pow(Math.E, dist_diff/100)) * price_threshold + carPark.getHourly_price() > t1.getHourly_price()){
+//                            return -1; //don't swap. The cheaper price isn't worth it
+//                        } else {
+//                            return 0;
+//                        }
+//                    } else {
+//                        return 0;
+//                    }
+//                }
+//            }
+//        });
+
+
+        /**
+         * Sorting method II
+         * */
+        /*
+        Arrays.sort(cpArray, new Comparator<CarPark>() {
+            @Override
+            public int compare(CarPark carPark, CarPark t1) {
+                if(carPark.getReccIndex() < t1.getReccIndex()){
+                    return 1;
+                } else if (carPark.getReccIndex() > t1.getReccIndex()){
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+        */
+
+
+        /*
+        Arrays.sort(cpArray, new Comparator<CarPark>() {
+            @Override
+            public int compare(CarPark carPark, CarPark t1) {
+                if((Math.abs(carPark.getHourly_price()) <= price_threshold) && (Math.abs(carPark.getDist() - t1.getDist())) < distance_threshold){
+                    if(carPark.getDataCategory() == CarPark.DataCategory.HDB && t1.getDataCategory() == CarPark.DataCategory.HDB){
+                        if(carPark.getAvail_lots() <= t1.getAvail_lots()){
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    } else {
+                        if(carPark.getDist() <= t1.getDist()){
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                } else if((Math.abs(carPark.getHourly_price() - t1.getHourly_price()) <= price_threshold) && (Math.abs(carPark.getDist() - t1.getDist()) >= distance_threshold)){
+                    return 1;
+                } else if((Math.abs(carPark.getHourly_price() - t1.getHourly_price()) > price_threshold)){
+                    if(carPark.getHourly_price() < t1.getHourly_price()) return -1;
+                    else return 1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+        */
         //update the list view
-        MyPriceAdapter myProximityAdapter = new MyPriceAdapter(getContext(), cpArray);
-        listView.setAdapter(myProximityAdapter);
+        MyReccAdapter myReccAdapter = new MyReccAdapter(getContext(), cpArray);
+        listView.setAdapter(myReccAdapter);
+    }
 
 
+    private void setReccIndex(CarPark[] carparks){
+
+        for(int i=0; i<carparks.length; i++){
+            double index_c1;
+            index_c1 = (Math.pow(Math.E, carparks[i].getDist()/100)) * price_threshold + carparks[i].getHourly_price();
+            /*
+            if(carparks[i].getDataCategory() == CarPark.DataCategory.HDB){
+                if(carparks[i].getAvail_lots() == 0){
+                    index_c1 += 1000000; //infinity
+                } else {
+                    index_c1 += 1/carparks[i].getAvail_lots();
+                }
+
+            }
+            */
+            carparks[i].setReccIndex(index_c1);
+        }
+
+        /*
+        for(int i=0; i<carparks.length; i++){
+            double avail;
+            double dist;
+            double price;
+
+            if(carparks[i].getDataCategory() == CarPark.DataCategory.HDB){
+                //get absolute availability of that carpark
+                avail = carparks[i].getAvail_lots();
+            } else {
+                //set the availability of that carpark to be 1 (DEFAULT VAL)
+                avail = 1;
+            }
+
+            dist = carparks[i].getDist();
+            price = carparks[i].getHourly_price();
+
+            //setting the index of the carpark
+            carparks[i].setReccIndex(avail/(price*dist));
+        }*/
     }
 
     private void setHourlyPriceForSelectedCarparks(CarPark[] carparks){
-
         for(int i=0; i<carparks.length; i++){
             CarPark currCp = carparks[i];
             if (currCp.getDataCategory() == CarPark.DataCategory.HDB) {
@@ -404,12 +568,7 @@ public class PriceFragment extends Fragment {
                             } else if((currCp.getMall_saturday_24rate()).equals("C")){
                                 currCp.setHourly_price(closed_val);
                             } else {
-                                try{
-                                    currCp.setHourly_price(Double.parseDouble(currCp.getMall_saturday_24rate()));
-                                } catch (NumberFormatException e){
-                                    e.printStackTrace();
-                                    currCp.setHourly_price(closed_val);
-                                }
+                                currCp.setHourly_price(Double.parseDouble(currCp.getMall_saturday_24rate()));
                             }
                         } else {
                             String[] timeComponents = str.split(":");
@@ -481,13 +640,11 @@ public class PriceFragment extends Fragment {
                                 try{
                                     currCp.setHourly_price(Double.parseDouble(currCp.getMall_weekday_24rate()));
                                 } catch(NumberFormatException e){
-                                    e.printStackTrace();
                                     currCp.setHourly_price(closed_val);
                                 }
 
                             }
                         } else {
-                            Log.v("MyBugProb", currCp.getName());
                             String[] timeComponents = str.split(":");
                             double currHr = Double.parseDouble(timeComponents[0]);
                             double currMin = Double.parseDouble(timeComponents[1]);
@@ -556,12 +713,81 @@ public class PriceFragment extends Fragment {
 
 
     }
+    private String availability_url = "https://api.data.gov.sg/v1/transport/carpark-availability";
+    private RequestQueue mQueue;
 
-    class MyPriceAdapter extends ArrayAdapter<CarPark> {
+    ArrayList<CarPark> allAvailCarParks = new ArrayList<>();
+
+    private void setAvailabilityInformation(final CarPark[] cpArray){
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, availability_url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //parsing happens here
+                        try {
+                            Log.v("Samuel", "Success-3");
+                            JSONArray jsonArrayItems = response.getJSONArray("items");
+                            JSONObject jsonObjectMain = jsonArrayItems.getJSONObject(0);
+                            JSONArray jsonArrayCarpark_Data = jsonObjectMain.getJSONArray("carpark_data");
+                            for (int i = 0; i < jsonArrayCarpark_Data.length(); i++) {
+                                CarPark availCarPark1 = new CarPark();
+                                JSONObject jsonObjectCarpark = jsonArrayCarpark_Data.getJSONObject(i);
+                                JSONArray jsonArrayInfo = jsonObjectCarpark.getJSONArray("carpark_info");
+                                JSONObject jsonObjectInfo = jsonArrayInfo.getJSONObject(0);
+
+                                availCarPark1.setName(jsonObjectCarpark.getString("carpark_number"));
+                                availCarPark1.setAvail_lots(jsonObjectInfo.getInt("lots_available"));
+                                availCarPark1.setTotal_lots(jsonObjectInfo.getInt("total_lots"));
+                                availCarPark1.setLot_type(jsonObjectInfo.getString("lot_type"));
+                                allAvailCarParks.add(availCarPark1);
+                            }
+
+                            for (int i = 0; i < cpArray.length; i++) {
+                                if(cpArray[i].getDataCategory() == CarPark.DataCategory.SHOPPING_MALL){
+                                    //SHOPPING MALL DATA
+                                    continue;
+                                } else {
+                                    //HDB DATA
+                                    String name = cpArray[i].getName();
+                                    int max = allAvailCarParks.size();
+                                    cpArray[i].setAvail_lots(0);
+                                    cpArray[i].setTotal_lots(0);
+                                    cpArray[i].setLot_type("N");
+                                    for (int j = 0; j < max; j++) {
+                                        CarPark availCarPark = allAvailCarParks.get(j);
+                                        if (name.equals(availCarPark.getName())) {
+                                            cpArray[i].setTotal_lots(availCarPark.getTotal_lots());
+                                            cpArray[i].setAvail_lots(availCarPark.getAvail_lots());
+                                            cpArray[i].setLot_type(availCarPark.getLot_type());
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.v("Samuel", "Error");
+            }
+        });
+
+        mQueue.add(request);
+    }
+
+
+
+
+    class MyReccAdapter extends ArrayAdapter<CarPark> {
         Context context;
         CarPark carPark;
 
-        public MyPriceAdapter(Context c, CarPark[] carParks){
+        public MyReccAdapter(Context c, CarPark[] carParks){
             super(c, 0, carParks);
         }
 
@@ -585,7 +811,7 @@ public class PriceFragment extends Fragment {
             String abhiPrice = "";
             if (carPark.getDataCategory() == CarPark.DataCategory.HDB) {
                 abhiPrice += "Car Rate: "+carPark.getHdb_car_parking_rate() + "\n"
-                                + "Motorcycle Rate: $0.65/lot";
+                        + "Motorcycle Rate: $0.65/lot";
             } else{
                 /******************************
                  * ABHISHEK'S PRICE ALGORITHM
@@ -762,7 +988,7 @@ public class PriceFragment extends Fragment {
                                 abhiPrice = "Free for the first hour";
                             } else if((carPark.getMall_weekday_24rate()).equals("C")){
                                 abhiPrice = "Closed during this hour";
-                            } else if((carPark.getMall_weekday_24rate()).equals("S")){
+                            }  else if((carPark.getMall_weekday_24rate()).equals("S")){
                                 abhiPrice = "Season Parking";
                             }else if((carPark.getMall_weekday_24rate()).equals("H")) {
                                 abhiPrice = "HDB Coupon";
@@ -843,6 +1069,7 @@ public class PriceFragment extends Fragment {
             } else if(abhiPrice.equals("C")){
                 abhiPrice = "Closed at this hour.";
             }
+
             if(abhiPrice.equals("")){
                 tvPrice.setText("No price information available at this timing");
             } else {
@@ -952,11 +1179,5 @@ public class PriceFragment extends Fragment {
 
             return convertView;
         }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        spinner.setSelection(0);
     }
 }

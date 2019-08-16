@@ -20,9 +20,18 @@
             android:layout_centerInParent="true"
             android:textSize="16sp"/>
 -->
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"/>
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/availabilityListView" />
+        android:id="@+id/availabilityListView"
+        android:layout_below="@id/spinner"/>
 
 </RelativeLayout>

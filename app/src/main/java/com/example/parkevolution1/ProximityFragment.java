@@ -13,11 +13,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.asksira.dropdownview.DropDownView;
+import com.asksira.dropdownview.OnDropDownSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.BufferedReader;
@@ -26,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -37,6 +43,8 @@ public class ProximityFragment extends Fragment {
     public static SVY21Coordinate currentSVY21Location;
     private List<CarPark> carParks = new ArrayList<>();
     private CarPark[] cpArray = new CarPark[50];
+    private CarPark[] cpArrayReverse = new CarPark[50];
+    private CarPark[] cpArrayOriginal = new CarPark[50];
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,6 +54,12 @@ public class ProximityFragment extends Fragment {
     }
 
     private ListView listView;
+    //private DropDownView dropDownView;
+    //private List<String> yourFilterList = Arrays.asList("Nearest to Furthest", "Furthest to Nearest");
+    private Spinner spinner;
+    private static final String[] paths = {"Nearest to Furthest", "Furthest to Nearest"};
+    private boolean ascending = true; //the carparks are arranged in ascending order
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         //setting the currentSVY21Location for testing purposes
@@ -59,6 +73,57 @@ public class ProximityFragment extends Fragment {
         }
 
         listView = getView().findViewById(R.id.proximityListView);
+        spinner = getView().findViewById(R.id.spinner);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, paths);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setSelection(0, true);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                switch (i){
+                    case 0:
+                        if(ascending != true){
+                            ascending = true;
+                            //update the list view
+                            cpArray = Arrays.copyOf(cpArrayOriginal, cpArrayOriginal.length);
+                            listView.setAdapter(new MyProximityAdapter(getContext(), cpArray));
+                        }
+                        break;
+                    case 1:
+                        if(ascending == true){
+                            ascending = false;
+                            //update the list view
+                            cpArray = Arrays.copyOf(cpArrayReverse, cpArrayReverse.length);
+                            listView.setAdapter(new MyProximityAdapter(getContext(), cpArray));
+
+                            for(CarPark c: cpArray){
+                                Log.v("Reverse-test", c.getAddress());
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+//        dropDownView = getView().findViewById(R.id.dropdownview);
+//        dropDownView.setDropDownListItem(yourFilterList);
+//        dropDownView.setOnSelectionListener(new OnDropDownSelectionListener() {
+//            @Override
+//            public void onItemSelected(DropDownView dropDownView, int position) {
+//                Toast.makeText(getContext(), "Selected one: "+position, Toast.LENGTH_LONG).show();
+//            }
+//        });
 
         if(currentSVY21Location != null){
             readCarParkData();
@@ -174,6 +239,7 @@ public class ProximityFragment extends Fragment {
         }
     }
 
+    MyProximityAdapter myProximityAdapter;
     //this method can be called once initially and everytime the current location FAB is pressed
     private void displayCarparks_distance(){
         //setting the square hypotenuse distance for each carparks in the entre array list -> O(n)
@@ -211,8 +277,12 @@ public class ProximityFragment extends Fragment {
             //cpArray[i].setDist(getDuration(currentSVY21Location.asLatLon(), pointCoord));
         }
 
+        cpArrayReverse = Arrays.copyOf(cpArray, cpArray.length);
+        Collections.reverse(Arrays.asList(cpArrayReverse));
+        cpArrayOriginal = Arrays.copyOf(cpArray, cpArray.length);
+
         //update the list view
-        MyProximityAdapter myProximityAdapter = new MyProximityAdapter(getContext(), cpArray);
+        myProximityAdapter = new MyProximityAdapter(getContext(), cpArray);
         listView.setAdapter(myProximityAdapter);
     }
 
@@ -328,7 +398,6 @@ public class ProximityFragment extends Fragment {
                         default:
                                 break;
                     }
-
                     proximityDetailFragment.setArguments(bundle);
                     getActivity().getSupportFragmentManager().beginTransaction()
                             .setTransition(FragmentTransaction.TRANSIT_ENTER_MASK)
@@ -341,5 +410,9 @@ public class ProximityFragment extends Fragment {
         }
     }
 
-
+    @Override
+    public void onPause() {
+        super.onPause();
+        spinner.setSelection(0);
+    }
 }
