@@ -418,6 +418,7 @@ public class PriceFragment extends Fragment {
                             double currAbhiTime = currHr*100+currMin;
 
                             String[] tokens = currCp.getMall_saturday_rates().split(";");
+                            Log.v("Cp-post-debug", "Name: "+currCp.getName());
                             for(String x : tokens){
                                 String[] pair = x.split(":");
                                 String timeRange  = pair[0];
