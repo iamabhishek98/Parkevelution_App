@@ -1,4 +1,4 @@
-# PARKEVELUTION MILESTONE 3: README:
+# PARKEVELUTION README
 
 **PROPOSED LEVEL OF ACHIEVEMENT:** Apollo 11
 
@@ -10,7 +10,7 @@ As we all know parking is a major problem in Singapore as a result of ever-escal
 
 To create a user-friendly android application which aids in making parking a hassle-free experience.
 
-*//image*
+![image](images/0.png)
 
 **GIT VERSION CONTROL:**
 
