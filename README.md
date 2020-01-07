@@ -1,4 +1,4 @@
-**PARKEVELUTION MILESTONE 3: README**
+*PARKEVELUTION MILESTONE 3: README*
 
 **PROPOSED LEVEL OF ACHIEVEMENT:** Apollo 11
 
@@ -140,10 +140,10 @@ When the user wants to find where he/she parked the car, he/she can select the _
 
 _Carpark Rates_ by sgCarMart
 
-- **●●** Unlike _Carpark Rates_, _Parkevelution_ conveniently consolidates all the relevant data and displays it in the list of carparks either sorted by proximity, price or availability.
-- **●●** The feature that makes _Parkevelution_ unique is that it has a recommended carparks feature which factors in price, distance and availability to provide the user with the best carpark option unlike any parking app in the Singaporean market.
-- **●●** Apart from optimizing the search for carparks, unlike _Carpark Rates_, _Parkevelution_ has facilities to provide navigation directions to the selected carpark, calculate the travel cost in route to the destination, display parking lot availability over the past 24 hours in a graphical format, predict future parking lot availability and many other additional features.
-- **●●** In summary, apart from enhancing all the basic features prevalent in _Carpark Rates_, _Parkevelution_ provides several other unique and useful features making it a rather well-rounded android application.
+- Unlike _Carpark Rates_, _Parkevelution_ conveniently consolidates all the relevant data and displays it in the list of carparks either sorted by proximity, price or availability.
+- The feature that makes _Parkevelution_ unique is that it has a recommended carparks feature which factors in price, distance and availability to provide the user with the best carpark option unlike any parking app in the Singaporean market.
+- Apart from optimizing the search for carparks, unlike _Carpark Rates_, _Parkevelution_ has facilities to provide navigation directions to the selected carpark, calculate the travel cost in route to the destination, display parking lot availability over the past 24 hours in a graphical format, predict future parking lot availability and many other additional features.
+- In summary, apart from enhancing all the basic features prevalent in _Carpark Rates_, _Parkevelution_ provides several other unique and useful features making it a rather well-rounded android application.
 
 **LIMITATIONS:**
 
@@ -151,17 +151,17 @@ _Carpark Rates_ by sgCarMart
 
 In the initial stages of development, we planned to implement the payment for carparks feature just like in the _Parking.sg_ app by Government Technology Agency. However, after extensive research, we realized that there was no publicly available API which allowed us to do so. We are sure that in the case it was publicly available, integrating this feature into our app would have made _Parkevelution_ the one app meeting all the parking requirements of users.
 
-1. Lack of Parking Lot Availability Data for Malls and Some HDB Carparks:
+2. Lack of Parking Lot Availability Data for Malls and Some HDB Carparks:
 
 As mentioned earlier, the real-time availability data for the carparks is retrieved from an API provided on [www.data.gov.sg](http://www.data.gov.sg). However, this API only provides the real-time lot availability for most HDB carparks while the API for the real-time lot availability for the carparks in malls and some HDBs is not publicly available. Hence, we were unable to implement the availability feature for the carparks in malls and some of the HDBs.
 
-1. Speed Constraint of Raspberry Pi Server:
+3. Speed Constraint of Raspberry Pi Server:
 
 In order to be cost-effective, we decided to make a Raspberry Pi our own personal server instead of using one of the paid web hosts online. However, this decision came with its own implications.
 
 For the app to function as per normal, the Raspberry Pi has to be left running 24/7 because of which at times it can run into some unusual problems and the server goes down. Other than this, we observed that a Raspberry Pi as a server is very slow and that the data took more than ten seconds to be retrieved from the MySQL database hosted on it. But since _Parkevelution_ is not a commercial app and is just a prototype, we decided to continue using the Raspberry Pi instead of switching over to a more powerful server.
 
-1. Inaccuracy of the _Predict Lot Availability_ Feature in Initial Stages:
+4. Inaccuracy of the _Predict Lot Availability_ Feature in Initial Stages:
 
 As mentioned earlier, the algorithm we used predicts the future lot availability based on trends in the Raspberry Pi&#39;s MySQL database. However, if there is not enough data then the prediction algorithm may not be so accurate. In order to overcome this, more real-time lot availability data was collected and stored in the database by the Raspberry Pi over the course of two months. Though this feature may not be 100 per cent accurate all the time due to the randomness of parking lot availability in the real world, with more data in the database, came more accuracy in the lot availability prediction.
 
@@ -245,52 +245,31 @@ In the context of Orbital, we loved the fact that we were given the freedom to m
 
 The following third-party libraries were used in the development of _Parkevelution_:
 
-1.
-  1.
-    1.
-      1. **1.** _com.github.loicteillard:EasyTabs:0.4_
+1. _com.github.loicteillard:EasyTabs:0.4_
 
-- **●●** Used to implement the sliding tab view for Proximity, Price and Availability
+- Used to implement the sliding tab view for Proximity, Price and Availability
 
-1.
-  1.
-    1.
-      1. **2.** _com.android.volley:volley:1.1.0_
+2. _com.android.volley:volley:1.1.0_
 
-- **●●** Used to make HTTP requests to the availability API and our Raspberry Pi server to retrieve data
+- Used to make HTTP requests to the availability API and our Raspberry Pi server to retrieve data
 
-1.
-  1.
-    1.
-      1. **3.** _com.google.android.gms:play-services-maps:16.1.0_
+3. _com.google.android.gms:play-services-maps:16.1.0_
 
-- **●●** Used to display the mini-map fragment in our app
+- Used to display the mini-map fragment in our app
 
-1.
-  1.
-    1.
-      1. **4.** _com.google.android.libraries.places:places:1.1.0_
+4. _com.google.android.libraries.places:places:1.1.0_
 
-- **●●** Used to get the name of places from their latitude and longitude information
-- **●●** Used to implement the autocomplete text search bar
+- Used to get the name of places from their latitude and longitude information
+- Used to implement the autocomplete text search bar
 
-1.
-  1.
-    1.
-      1. **5.** _com.akexorcist:googledirectionlibrary:1.0.4_
+5. _com.akexorcist:googledirectionlibrary:1.0.4_
 
 - Used to display the rough route from the user&#39;s current location to the user&#39;s selected carpark in the mini-map
 
-1.
-  1.
-    1.
-      1. **6.** _com.mxn.soul:flowingdrawer-core:2.1.0_
+6. _com.mxn.soul:flowingdrawer-core:2.1.0_
 
 - Used to implement the sidebar navigation drawer for the app to allow users to navigate among the different interfaces (_Home_, _Favourite Carpark_s, _Park My Car/Find My Car_).
 
-1.
-  1.
-    1.
-      1. **7.** _com.github.PhilJay:MPAndroidChart:v3.1.0-alpha_:
+7. _com.github.PhilJay:MPAndroidChart:v3.1.0-alpha_:
 
 - Used to display the latest 24-hour availability data in a graphical format.
