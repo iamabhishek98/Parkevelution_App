@@ -1,18 +1,18 @@
 **PARKEVELUTION MILESTONE 3: README**
 
-**PROPOSED LEVEL OF ACHIEVEMENT**** :** Apollo 11
+**PROPOSED LEVEL OF ACHIEVEMENT:** Apollo 11
 
-**INTRODUCTION**** :**
+**INTRODUCTION:**
 
 As we all know parking is a major problem in Singapore as a result of ever-escalating parking charges and a shortage of parking spaces. We plan to tackle this problem with the various features of our app. Displaying the parking charges, parking lot availability and distance to the carparks in the proximity of the user are some of the features of our app, _Parkevelution_. In the latter part of this report, we will be discussing all the features we implemented over the course of the past three months and their methods of implementation.
 
-**AIM**** :**
+**AIM:**
 
 To create a user-friendly android application which aids in making parking a hassle-free experience.
 
 *//image*
 
-**GIT VERSION CONTROL**** :**
+**GIT VERSION CONTROL:**
 
 Since both of us were constantly working on the app, we required a reliable and efficient way to share the changes we made to the source code. In order to facilitate this, we used the renowned GitHub to version control our project.
 
@@ -20,7 +20,7 @@ Since both of us were constantly working on the app, we required a reliable and 
 
 This way we were able to make arbitrary edits to the source code without affecting each other and when satisfied with the outcome, we committed the changes to the GitHub repository. As a result, we started spotting our errors more quickly and this led to a smoother transition when we combined our work using GitHub.
 
-**DESCRIPTION &amp; IMPLEMENTATION OF**  **PARKEVELUTION&#39;S**  **FEATURES**** :**
+**DESCRIPTION &amp; IMPLEMENTATION OF**  **PARKEVELUTION&#39;S**  **FEATURES:**
 
 *//image*
 
@@ -136,7 +136,7 @@ In the case when the user does not want to explicitly remember where he/she park
 
 When the user wants to find where he/she parked the car, he/she can select the _Find My Car_ option from the sidebar. This opens up a page where the user can see the saved location of his/her car on the mini-map. Once the user finds the car, he/she can select the _Unpark_ button which causes the app to forget the stored location.
 
-**COMPARISION WITH OTHER SIMILAR APPS**** :**
+**COMPARISION WITH OTHER SIMILAR APPS:**
 
 _Carpark Rates_ by sgCarMart
 
@@ -145,7 +145,7 @@ _Carpark Rates_ by sgCarMart
 - **●●** Apart from optimizing the search for carparks, unlike _Carpark Rates_, _Parkevelution_ has facilities to provide navigation directions to the selected carpark, calculate the travel cost in route to the destination, display parking lot availability over the past 24 hours in a graphical format, predict future parking lot availability and many other additional features.
 - **●●** In summary, apart from enhancing all the basic features prevalent in _Carpark Rates_, _Parkevelution_ provides several other unique and useful features making it a rather well-rounded android application.
 
-**LIMITATIONS**** :**
+**LIMITATIONS:**
 
 1. Lack of a Carpark Payment Feature:
 
@@ -165,7 +165,7 @@ For the app to function as per normal, the Raspberry Pi has to be left running 2
 
 As mentioned earlier, the algorithm we used predicts the future lot availability based on trends in the Raspberry Pi&#39;s MySQL database. However, if there is not enough data then the prediction algorithm may not be so accurate. In order to overcome this, more real-time lot availability data was collected and stored in the database by the Raspberry Pi over the course of two months. Though this feature may not be 100 per cent accurate all the time due to the randomness of parking lot availability in the real world, with more data in the database, came more accuracy in the lot availability prediction.
 
-**TESTING PHASES**** :**
+**TESTING PHASES:**
 
 Though it was challenging to learn new things and implement _Parkevelution&#39;s_ features, in order to ensure the success and sanity of our app development process, we had to carry out comprehensive testing. In order to do so, we implemented three phases of testing as listed below.
 
@@ -235,13 +235,13 @@ Upon receiving the feedback, we were glad that none of the users complained abou
 
 
 
-**CONCLUSION**** :**
+**CONCLUSION:**
 
 It is hard to disagree with the fact that people love mobile applications because without them our life would be so much more inconvenient. However, going through the process of developing such an app is a completely different experience.
 
 In the context of Orbital, we loved the fact that we were given the freedom to make any project we wanted and to implement any additional features which came to our mind. This opened up a huge range of possibilities and as a result, we were able to create unique and useful features. Over the course of the past three months developing our app, we faced both minor as well as major bugs and made numerous frustrating attempts at debugging faulty code. However, overcoming these hurdles gave us a deeper understanding of how various software packages and tools can be engineered together to create product mobile apps like _Parkevelution_. All in all, we are glad to have gone through such an enriching three months of learning and to have simultaneously a created a close-to-perfect one-stop solution to the parking problems of Singaporean users in the process.
 
-**ACKNOWLEDGEMENTS**** :**
+**ACKNOWLEDGEMENTS:**
 
 The following third-party libraries were used in the development of _Parkevelution_:
 
