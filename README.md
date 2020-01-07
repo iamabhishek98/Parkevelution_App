@@ -159,7 +159,7 @@ Once all the bugs were squashed, we had to make sure that all the functionalitie
 
 The one downside to using emulators was that we could not effectively test the natural touch gestures which was why we moved on to the next phase of testing at this point.
 
-1. Alpha Testing:
+2. Alpha Testing:
 
 After testing the app on the emulators, we had to make sure that the app not only worked on a real device but also under real-life scenarios. Instead of simulating the user data as we did in the previous phase, in order to make it as realistic as possible, we used the app on a daily basis for a week to optimize our own parking experience.
 
@@ -175,7 +175,7 @@ On the following day, we checked the lot availability of the selected carpark th
 
 The fact that the predicted value was so close to the actual value proved to us that this feature was also working as expected. The successful outcomes of testing out all the app&#39;s features over the course of a week brought a conclusion to this phase of testing.
 
-1. Beta Testing with Other Users:
+3. Beta Testing with Other Users:
 
 After testing the app on our own, in order to make sure that our app was free of bugs as well as to see whether it would be well-received, we implemented this testing phase. In this phase, we sent out the APK of our application to 9 friends of ours and let them use it for a couple of days before they provided us with their feedback.
 
