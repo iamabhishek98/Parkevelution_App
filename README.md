@@ -1,7 +1,5 @@
 # PARKEVELUTION README
 
-**PROPOSED LEVEL OF ACHIEVEMENT:** Apollo 11
-
 **INTRODUCTION:**
 
 As we all know parking is a major problem in Singapore as a result of ever-escalating parking charges and a shortage of parking spaces. We plan to tackle this problem with the various features of our app. Displaying the parking charges, parking lot availability and distance to the carparks in the proximity of the user are some of the features of our app, _Parkevelution_. In the latter part of this report, we will be discussing all the features we implemented over the course of the past three months and their methods of implementation.
@@ -11,14 +9,6 @@ As we all know parking is a major problem in Singapore as a result of ever-escal
 To create a user-friendly android application which aids in making parking a hassle-free experience.
 
 ![image](images/0.png)
-
-**GIT VERSION CONTROL:**
-
-Since both of us were constantly working on the app, we required a reliable and efficient way to share the changes we made to the source code. In order to facilitate this, we used the renowned GitHub to version control our project.
-
-![image](images/1.png)
-
-This way we were able to make arbitrary edits to the source code without affecting each other and when satisfied with the outcome, we committed the changes to the GitHub repository. As a result, we started spotting our errors more quickly and this led to a smoother transition when we combined our work using GitHub.
 
 **DESCRIPTION &amp; IMPLEMENTATION OF**  **PARKEVELUTION&#39;S**  **FEATURES:**
 
@@ -36,25 +26,13 @@ In order for the app&#39;s features to work, the user would have to provide the 
 
 Once the user&#39;s current location is obtained, it is displayed as a blue dot on the mini-map as shown in the image above. In the case when the user decides to choose a location using the search bar, the selected location is zoomed in and focused upon before it shows up as a blue pin on the mini-map.
 
-
-
-
-
-
-
-1. Proximity, Price, Availability &amp; Recommended Carparks Features:
+2. Proximity, Price, Availability &amp; Recommended Carparks Features:
 
 The purpose of the proximity feature is to display the carparks which are in the closest vicinity of the user&#39;s current or selected location. Upon receiving the user&#39;s current or selected location, in order to simplify finding the distance of the carparks on the map, the Google Maps API is used to obtain the global latitude-longitude coordinates which are then converted to SVY21 x and y coordinates using the SVY21 converter method. The same method is used to convert the addresses of the carparks provided on [www.data.gov.sg](http://www.data.gov.sg/) to SVY21 x and y coordinates in run time. Following the conversions, the Pythagoras Theorem is used to compute the relative distance of each carpark from the selected location. The obtained relative map distances are then fed into a single array which is sorted to obtain the closest 50 carparks to the selected location. Once sorted, the actual distance from the selected location to the carpark is obtained using the Google Directions API and is displayed in a list format as seen in the image below.
 
 ![image](images/4.png)
 
 By default, the list of carparks is sorted from nearest to furthest. The user can choose to view the list sorted from the furthest to the nearest carparks by selecting the option from the sort filter as shown in the image above.
-
-
-
-
-
-
 
 We obtained the pricing information of the HDB carparks from [www.hdb.gov.sg](https://www.hdb.gov.sg/cs/infoweb/car-parks/short-term-parking/short-term-parking-charges) while the pricing information for the rest of the carparks was obtained from [www.data.gov.sg](http://www.data.gov.sg/). The price feature which we implemented, enables the user to view the prices of the carparks in his/her vicinity in real-time.
 
@@ -64,16 +42,6 @@ Upon selection of the price tab, the app reads the detailed pricing information 
 
 Once these prices are obtained, they are displayed in a list format sorted by distance by default. If the user wants to view the list sorted by price from cheapest to most expensive or vice-versa, he/she can choose the options from the sort filter as shown in the image above.
 
-
-
-
-
-
-
-
-
-
-
 The availability feature comes in handy when users would like to know the real-time availability of carparks in their vicinity. In order to implement this feature, we used the availability API provided on [www.data.gov.sg](http://www.data.gov.sg/). A get request to this API provides the carpark availability data in JSON format.
 
 Upon selection of the availability tab, the obtained JSON data is parsed to extract the carpark number and the carpark availability. The carpark numbers are used to uniquely identify the carparks in the local database following which the name of the carpark is obtained. In order to display the availability data in a more user-friendly manner, we categorised the data under low (\&lt;33%), medium (\&lt;67%) and high (\&gt;=67%) availability categories which are indicated by the colours red, yellow and green respectively.
@@ -81,14 +49,6 @@ Upon selection of the availability tab, the obtained JSON data is parsed to extr
 ![image](images/6.png)
 
 Once all the relevant information is obtained, it is then displayed in a list format sorted by distance by default. If the user wants to view the list sorted by lot availability from the carparks with highest availability first or vice-versa, he/she can choose the options from the sort filter as shown in the image above.
-
-
-
-
-
-
-
-
 
 The unique selling point of _Parkevelution_ is that when the user is indecisive of choosing a carpark, there is a recommended carparks tab which factors in distance, price and availability to provide the user with the overall best carpark option.
 
@@ -100,7 +60,7 @@ Upon selection of the recommended carparks tab, the list of the 50 nearest carpa
 
 ![image](images/7.png)
 
-1. Detailed Information:
+3. Detailed Information:
 
 ![image](images/8.png)
 
@@ -120,7 +80,7 @@ In the case when the user wants to view the navigation directions to the selecte
 
 ![image](images/11.png)
 
-1. Sidebar:
+4. Sidebar:
 
 It is often the case that the user forgets which carpark he/she parked in or if the user wants to save a particular carpark he/she is interested in. In order to bring forward the _Favourite Carparks_ and the _Park My Car_ features, we implemented a user-friendly sidebar. To display the sidebar in the app as shown in the image below, the user would have swipe right from the left edge of the screen.
 
@@ -182,8 +142,6 @@ Since we required a method to test our android application on a variety of devic
 | Data saved from the &quot;Park My Car&quot; feature was lost upon exiting the app. | We used SharedPreferences to provide the app with persistent memory. |
 | App crashed when an HTTP request was initiated and the user pressed the back button. | Upon initiation of an HTTP request, the request was performed asynchronously using AsyncTask accomplished with the help of the Android Volley library. However, when the user pressed the back button in the process, the app crashed after a while as once the AsyncTask was completed, it tried to find the missing views to place the information in. After having realized this, we handled this bug by checking if a View was present before letting the AsyncTask display information on it. If the view is null, then nothing is done thus avoiding the NullPointerException. |
 
-
-
 Once all the bugs were squashed, we had to make sure that all the functionalities worked as expected under different conditions. In order to achieve this, we conducted highly focused tests of each feature by simulating various user inputs multiple times. The results we achieved from these tests have been listed in the table below:
 
 | **Key** | **Feature** | **Result** |
@@ -217,8 +175,6 @@ On the following day, we checked the lot availability of the selected carpark th
 
 The fact that the predicted value was so close to the actual value proved to us that this feature was also working as expected. The successful outcomes of testing out all the app&#39;s features over the course of a week brought a conclusion to this phase of testing.
 
-
-
 1. Beta Testing with Other Users:
 
 After testing the app on our own, in order to make sure that our app was free of bugs as well as to see whether it would be well-received, we implemented this testing phase. In this phase, we sent out the APK of our application to 9 friends of ours and let them use it for a couple of days before they provided us with their feedback.
@@ -228,10 +184,6 @@ In order to get back constructive feedback from our friends, we send out a few q
 ![image](images/17.png)
 
 Upon receiving the feedback, we were glad that none of the users complained about any bugs and that all the app&#39;s features were well-received. This brought an end to this phase of testing.
-
-
-
-
 
 **CONCLUSION:**
 
